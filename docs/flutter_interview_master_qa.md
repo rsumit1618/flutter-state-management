@@ -973,16 +973,15 @@ keys, cached data, and lightweight row widgets.
 ## A48. What are SOLID principles?
 
 **Interview answer:**  
-SOLID is a set of five design principles that makes object-oriented code easier
-to change, test, and extend.
+SOLID is a set of 5 rules that helps us write clean, reusable, and testable object-oriented code.
 
-| Principle | Easy meaning | Flutter example |
-| --- | --- | --- |
-| SRP | One reason to change | Widget renders; repository loads data |
-| OCP | Extend without editing stable code | Add repository implementation |
-| LSP | Subtype safely replaces contract | Fake repository replaces real one |
-| ISP | Small focused interfaces | Separate reader/writer contracts |
-| DIP | Depend on abstractions | Controller depends on repository interface |
+| Principle | Simple meaning | Example |
+|---|---|---|
+| **S - Single Responsibility** | One class should do one job | Widget shows UI, repository gets data |
+| **O - Open/Closed** | Add new features without changing old code | Add a new repository class |
+| **L - Liskov Substitution** | Child class should work in place of parent class | Fake repository works instead of real repository |
+| **I - Interface Segregation** | Keep interfaces small | Separate read and write methods |
+| **D - Dependency Inversion** | Depend on interfaces, not direct classes | Controller uses repository interface |
 
 ```dart
 abstract interface class UserRepository {
@@ -991,9 +990,10 @@ abstract interface class UserRepository {
 
 class UserController {
   final UserRepository repository;
+
   UserController(this.repository);
 }
-```
+
 
 Project example:
 [NoteRepository and implementation](../lib/core/repository/).
