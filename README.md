@@ -11,15 +11,12 @@ Riverpod**. Its primary purpose is to show:
 
 ## Complete Interview Question Bank
 
-Start here for the full set of questions and easy-to-remember answers:
+Start here for the rewritten, easy-to-remember interview answers:
 
-### [Open Flutter Interview Master Questions And Answers](docs/flutter_interview_master_qa.md)
+### [Open Flutter Interview Questions: Easy Answers](docs/flutter_interview_master_qa.md)
 
-It covers all **356 questions across 22 sections** from the supplied list,
-including platform
-channels, widgets, lifecycle, architecture, Riverpod, BLoC, Freezed, networking,
-HTTP codes, security, SQLite, async programming, payments, notifications,
-performance, app startup, MCP/AI agents, and scenario-based answers.
+The guide contains your **50 priority questions first**, followed by the
+**Top 100 additional Flutter interview questions**.
 
 Each section follows this structure:
 
@@ -233,15 +230,15 @@ See [`AppDatabase`](lib/core/database/app_database.dart).
 
 For production interviews, also prepare schema migrations, indexes,
 transactions, encryption, and offline synchronization. Those are discussed in
-the [extended interview guide](docs/flutter_interview_guide.md) but are not all
+the [easy-answer interview guide](docs/flutter_interview_master_qa.md#a31-what-is-caching-and-offline-support) but are not all
 implemented in this small sample.
 
 ## More Questions An Interviewer Can Ask
 
 | Interview question | Answer/example in this project |
 | --- | --- |
-| What are Widget, Element, and RenderObject? | [Extended interview guide](docs/flutter_interview_guide.md#14-flutter-rendering-pipeline) |
-| How does `BuildContext` work? | [Extended interview guide](docs/flutter_interview_guide.md#2-what-is-buildcontext) |
+| What are Widget, Element, and RenderObject? | [Easy answer](docs/flutter_interview_master_qa.md#a38-widget-tree-vs-element-tree-vs-renderobject-tree) |
+| How does `BuildContext` work? | [Easy answer](docs/flutter_interview_master_qa.md#b21-what-is-buildcontext) |
 | How do provider overrides improve tests? | [Riverpod test](test/riverpod/riverpod_note_view_model_test.dart) |
 | How do you handle mutation success and failure in BLoC? | [`BlocConsumer` form](lib/bloc_example/view/bloc_add_note_page.dart) |
 | How should GetX controllers be scoped? | [GetX list page lifecycle](lib/getx_example/view/getx_notes_list_page.dart) |
@@ -251,10 +248,10 @@ implemented in this small sample.
 | How do you build responsive Flutter UI? | [`LayoutBuilder` example](lib/interview_examples/view/interview_concepts_page.dart) |
 | How do you test failure states? | [BLoC](test/bloc/note_bloc_test.dart), [GetX](test/getx/getx_note_controller_test.dart), [Riverpod](test/riverpod/riverpod_note_view_model_test.dart) |
 | How would you add a real REST API? | Implement [`NoteRemoteDataSource`](lib/core/data/note_data_sources.dart) |
-| How would you improve performance? | [Extended performance answer](docs/flutter_interview_guide.md#13-widget-performance) |
-| What are isolates used for? | [Extended concurrency answer](docs/flutter_interview_guide.md#5-asyncawait-and-parallel-work) |
-| What are platform channels? | [Extended platform-channel answer](docs/flutter_interview_guide.md#18-platform-channels) |
-| How do you secure tokens and secrets? | [Extended security answer](docs/flutter_interview_guide.md#19-security) |
+| How would you improve performance? | [Jank and performance answer](docs/flutter_interview_master_qa.md#b45-what-causes-flutter-jank) |
+| What are isolates used for? | [Isolate answer](docs/flutter_interview_master_qa.md#a34-what-is-an-isolate) |
+| What are platform channels? | [MethodChannel vs EventChannel](docs/flutter_interview_master_qa.md#a21-methodchannel-vs-eventchannel) |
+| How do you secure tokens and secrets? | [Secure storage answer](docs/flutter_interview_master_qa.md#b87-what-is-secure-storage) |
 
 ## Project Structure
 
@@ -325,6 +322,5 @@ formatting, static analysis, unit/widget tests, and Android integration tests.
 
 - [Complete Interview Master Q&A](docs/flutter_interview_master_qa.md)
 - [Testing Guide: unit vs widget vs integration](test/README.md)
-- [Extended Flutter Interview Guide](docs/flutter_interview_guide.md)
 - [Official Flutter testing documentation](https://docs.flutter.dev/testing/overview)
 - [Official Flutter architecture guide](https://docs.flutter.dev/app-architecture/guide)

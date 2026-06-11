@@ -1,269 +1,786 @@
-# Flutter Interview Master Questions And Answers
+# Flutter Interview Questions: Easy Answers
 
-This guide answers every topic from the supplied interview list in a form that
-is designed to be spoken aloud and remembered.
+This is the main interview revision document for this repository.
 
-The source list contains **356 questions across 22 sections**. Repeated
-questions are intentionally grouped under headings such as `3-5` so one answer
-covers the related “what,” “why,” and “when” forms without repeating the same
-paragraph.
+It contains:
+
+1. **Your 50 priority questions first**, rewritten and technically corrected.
+2. **The Top 100 additional Flutter interview questions** after them.
+3. Short spoken answers, memory lines, comparisons, flows, and code examples.
 
 Navigation:
 
-- [Main project and state-management comparison](../README.md)
+- [Project and state-management implementation](../README.md)
 - [Testing guide](../test/README.md)
-- [Short Flutter interview guide](flutter_interview_guide.md)
-- [Working concepts screen](../lib/interview_examples/view/interview_concepts_page.dart)
+- [Working Flutter concepts screen](../lib/interview_examples/view/interview_concepts_page.dart)
 
-## How To Answer In An Interview
+## How To Remember An Answer
 
-Use **D-F-E-T**:
+Use **D-F-E**:
 
 ```text
 D = Definition: What is it?
 F = Flow: How does it work?
-E = Example: Where did I use it?
-T = Tradeoff: When would I not use it?
+E = Example: Where would I use it?
 ```
 
-Example:
-
-```text
-Riverpod is a provider-based state and dependency-management library.
-The UI watches a provider, an AsyncNotifier calls a repository, and AsyncValue
-represents loading, data, or error. I used it in this Notes project with
-provider overrides for tests. Its tradeoff is that teams need clear provider
-ownership and lifecycle conventions.
-```
-
-## Implementation Legend
-
-| Label | Meaning |
-| --- | --- |
-| **Implemented** | Working code exists in this repository |
-| **Demonstrated** | A small runnable example exists |
-| **Documented** | Interview answer and code sample exist, but the dependency is not added |
-| **Production extension** | Important production topic intentionally outside this small sample |
-
-## Original Question Coverage
-
-| Section | Questions |
-| --- | ---: |
-| Platform Channels | 8 |
-| Widgets and Widget Tree | 20 |
-| StatefulWidget Lifecycle | 20 |
-| InheritedWidget and State Sharing | 8 |
-| Flutter Architecture | 10 |
-| Clean Architecture | 18 |
-| Riverpod and Provider | 25 |
-| BLoC and Cubit | 15 |
-| Freezed and Immutable Classes | 14 |
-| API Integration and Networking | 27 |
-| HTTP Status Codes | 25 |
-| Security, SSL Pinning, and Encryption | 26 |
-| SQLite Database | 15 |
-| Futures, Streams, and Async Programming | 18 |
-| Callbacks and Listeners | 14 |
-| App Store and Play Store Country Availability | 8 |
-| Payment Gateway Integration | 15 |
-| Push Notifications | 15 |
-| App Performance | 15 |
-| Main Function and App Startup | 8 |
-| MCP Server, AI Agent, and Agentic AI | 12 |
-| Practical Scenario-Based Flutter Questions | 20 |
-| **Total** | **356** |
+Keep the first answer under 30 seconds. Add details only when the interviewer
+asks a follow-up.
 
 ---
 
-# 1. Platform Channels
+# Part A: Your 50 Priority Questions
 
-**Memory line:** `MethodChannel = request/response; EventChannel = continuous events.`
+## A1. What are `main()` and `runApp()`?
 
-## Questions And Answers
+**Interview answer:**  
+`main()` is the Dart entry point. `runApp()` attaches the root widget and starts
+the Flutter UI.
 
-### 1. What is a MethodChannel?
+**Remember:** `main = start Dart`, `runApp = start UI`.
 
-A `MethodChannel` is an asynchronous named bridge used to invoke a method
-between Dart and platform code such as Kotlin or Swift.
+```dart
+void main() {
+  runApp(const MyApp());
+}
+```
 
-### 2. Why do we use MethodChannel?
+Project example: [main.dart](../lib/main.dart).
 
-Use it when Flutter or an existing plugin does not expose a native capability,
-for example a vendor SDK, device API, or platform-specific security feature.
+---
 
-### 3. How does Flutter communicate with Android or iOS?
+## A2. What is the difference between `StatelessWidget` and `StatefulWidget`?
+
+**Interview answer:**  
+A `StatelessWidget` has no mutable `State` object. A `StatefulWidget` creates a
+`State` object whose values may change during the widget's lifetime.
+
+| StatelessWidget | StatefulWidget |
+| --- | --- |
+| Immutable configuration | Immutable widget plus mutable `State` |
+| Good for display-only UI | Good for local changing UI |
+| Example: `Text`, `Icon` | Example: `TextField`, `Checkbox` |
+
+Do not say that `StatelessWidget` automatically makes an app fast. Performance
+depends more on rebuild scope, layout, painting, and expensive work.
+
+For large features, keep business state in BLoC, GetX, Riverpod, or another
+state layer instead of putting everything in the widget.
+
+**Lifecycle memory:**
 
 ```text
-Dart invokes method
-  -> Flutter engine serializes arguments
-  -> Kotlin/Swift channel handler runs
-  -> native result/error returns
-  -> Dart Future completes
+createState
+-> initState
+-> didChangeDependencies
+-> build
+-> didUpdateWidget (when parent configuration changes)
+-> deactivate
+-> dispose
+```
+
+Project example:
+[InterviewConceptsPage](../lib/interview_examples/view/interview_concepts_page.dart).
+
+---
+
+## A3. What are tree shaking, R8, and ProGuard?
+
+**Interview answer:**  
+Tree shaking removes unreachable Dart code from release builds. On Android, R8
+performs code shrinking, optimization, and obfuscation. R8 has largely replaced
+ProGuard as the Android shrinker, though ProGuard rule syntax is still used.
+
+**Remember:**
+
+```text
+Tree shaking -> Dart unused code
+R8           -> Android bytecode shrink/optimize/obfuscate
+Resource shrinker -> unused Android resources
+```
+
+Obfuscation makes reverse engineering harder, but it is not encryption and does
+not make embedded secrets safe.
+
+---
+
+## A4. What is Agile?
+
+**Interview answer:**  
+Agile is an iterative development approach where a team delivers software in
+small increments, gets feedback, and adapts priorities continuously.
+
+**Remember:** `Plan small -> build -> review -> improve`.
+
+Common Scrum activities include sprint planning, daily stand-up, refinement,
+review, and retrospective. Agile is the mindset; Scrum is one framework.
+
+---
+
+## A5. What is a sealed class?
+
+**Interview answer:**  
+A sealed class defines a closed family of subtypes. Dart knows the possible
+subclasses, which helps exhaustive `switch` handling.
+
+```dart
+sealed class ApiState {}
+
+final class Loading extends ApiState {}
+final class Success extends ApiState {
+  final String data;
+  Success(this.data);
+}
+final class Failure extends ApiState {
+  final String message;
+  Failure(this.message);
+}
 ```
 
 ```dart
-const channel = MethodChannel('com.example/device');
+String label(ApiState state) => switch (state) {
+  Loading() => 'Loading',
+  Success(:final data) => data,
+  Failure(:final message) => message,
+};
+```
 
-Future<String> deviceName() async {
-  try {
-    return await channel.invokeMethod<String>('deviceName') ?? 'Unknown';
-  } on PlatformException catch (error) {
-    throw Exception('Native call failed: ${error.code}');
+In Dart, direct subtypes of a sealed class must be declared in the same
+**library**, not necessarily the same physical file when `part` files are used.
+
+---
+
+## A6. What is an abstract class?
+
+**Interview answer:**  
+An abstract class cannot be instantiated directly. It can define a contract,
+shared implementation, fields, and constructors for subclasses.
+
+```dart
+abstract interface class UserRepository {
+  Future<String> getUser();
+}
+```
+
+Repositories depend on contracts so API, database, and fake implementations can
+be replaced without changing the consumer.
+
+Project example:
+[NoteRepository](../lib/core/repository/note_repository.dart).
+
+---
+
+## A7. `ListView`, `builder`, `separated`, and `custom`: what is the difference?
+
+**Interview answer:**  
+Use the normal `ListView(children:)` for a small known list.
+`ListView.builder` lazily builds large or dynamic lists.
+`ListView.separated` lazily builds items plus separators.
+`ListView.custom` gives advanced control through a sliver child delegate.
+
+| Constructor | Best use |
+| --- | --- |
+| `ListView(children:)` | Small static list |
+| `ListView.builder` | Large/dynamic list |
+| `ListView.separated` | Lazy list with dividers/gaps |
+| `ListView.custom` | Custom child creation/delegates |
+
+There is no standard Flutter widget named `CustomizableListView`.
+
+---
+
+## A8. What is `SingleChildScrollView`?
+
+**Interview answer:**  
+`SingleChildScrollView` makes one child scrollable. It is suitable for small
+content such as a form inside a `Column`.
+
+It lays out the whole child, so do not use it for thousands of records. Use a
+lazy list instead.
+
+```dart
+SingleChildScrollView(
+  child: Column(children: formFields),
+);
+```
+
+**Remember:** `small page = SingleChildScrollView`, `large list = builder`.
+
+---
+
+## A9. What is a mixin?
+
+**Interview answer:**  
+A mixin reuses behavior across multiple classes without creating an
+“is-a” inheritance relationship. A class can apply multiple mixins with `with`.
+
+```dart
+mixin Logger {
+  void log(String message) => print('LOG: $message');
+}
+
+mixin Validator {
+  bool isValid(String value) => value.trim().isNotEmpty;
+}
+
+class UserService with Logger, Validator {
+  void createUser(String name) {
+    log(isValid(name) ? 'User created' : 'Invalid user');
   }
 }
 ```
 
-### 4. What is an EventChannel?
+Use composition or a service when behavior needs independent state,
+dependencies, or runtime replacement.
 
-An `EventChannel` exposes a stream of platform events to Dart.
+---
 
-### 5. MethodChannel vs EventChannel?
+## A10. What is `git cherry-pick`?
+
+**Interview answer:**  
+`git cherry-pick` applies one or more specific commits from another branch onto
+the current branch.
+
+```bash
+git switch release
+git cherry-pick a1b2c3d
+```
+
+It creates a new commit with the same change but a different commit identity.
+Use it for an isolated fix, not as the normal way to combine whole branches.
+
+---
+
+## A11. What is the difference between Git merge and rebase?
+
+| Merge | Rebase |
+| --- | --- |
+| Combines histories | Replays commits on a new base |
+| May create merge commit | Produces linear history |
+| Does not rewrite existing commits | Rewrites commit identities |
+| Safe for shared branches | Avoid rebasing already shared commits |
+
+**Interview answer:**  
+I use merge when preserving shared history is important. I use rebase to update
+my private feature branch and keep its history linear before merging.
+
+---
+
+## A12. What is the difference between `final`, `const`, and `factory`?
+
+| Keyword | Meaning |
+| --- | --- |
+| `final` | Assigned once; value may be known at runtime |
+| `const` | Compile-time constant |
+| `factory` | Constructor that controls what instance is returned |
+
+```dart
+final now = DateTime.now(); // Runtime value, assigned once.
+const timeout = Duration(seconds: 10); // Compile-time constant.
+
+class User {
+  final int id;
+  User(this.id);
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(json['id'] as int);
+  }
+}
+```
+
+A factory may return a cached instance, subtype, or parsed object. A generative
+constructor always creates a new instance.
+
+---
+
+## A13. What is a payload?
+
+**Interview answer:**  
+A payload is the meaningful data carried by a request, response, message, or
+event. In an HTTP API it usually means the body.
+
+```json
+{
+  "title": "Flutter",
+  "description": "Interview notes"
+}
+```
+
+Headers and status code describe the message; the payload carries its data.
+
+---
+
+## A14. What is a push-notification payload?
+
+**Interview answer:**  
+It is the notification and custom data sent to the app. Display fields may
+contain title/body; data fields may contain a safe route or entity ID.
+
+```json
+{
+  "notification": {"title": "Payment", "body": "Payment completed"},
+  "data": {"type": "payment", "paymentId": "p_123"}
+}
+```
+
+Validate payload values and authorization before navigation. Do not trust a push
+payload as proof of payment or permission.
+
+---
+
+## A15. What is `CustomScrollView`?
+
+**Interview answer:**  
+`CustomScrollView` combines multiple slivers into one scrollable area, such as a
+collapsing app bar, list, grid, and spacing.
+
+```dart
+CustomScrollView(
+  slivers: [
+    const SliverAppBar(
+      pinned: true,
+      expandedHeight: 160,
+      flexibleSpace: FlexibleSpaceBar(title: Text('Notes')),
+    ),
+    SliverList.builder(
+      itemCount: 20,
+      itemBuilder: (_, index) => ListTile(title: Text('Item $index')),
+    ),
+  ],
+);
+```
+
+---
+
+## A16. `NestedScrollView` vs `CustomScrollView`
+
+**Interview answer:**  
+`CustomScrollView` creates one sliver-based scroll view. `NestedScrollView`
+coordinates an outer scroll view with inner scroll views, commonly a collapsing
+header with tab lists.
+
+| CustomScrollView | NestedScrollView |
+| --- | --- |
+| One scroll position | Coordinates outer and inner positions |
+| Slivers compose the page | Useful with `TabBarView` inner lists |
+| Simpler and preferred when enough | More complex overlap/scroll behavior |
+
+---
+
+## A17. What is cryptography?
+
+**Interview answer:**  
+Cryptography protects information using mathematical techniques for
+confidentiality, integrity, authentication, and non-repudiation.
+
+**Remember:** `hide data, detect changes, prove identity`.
+
+Do not invent cryptographic algorithms; use maintained libraries and platform
+security APIs.
+
+---
+
+## A18. What are the main types of cryptography?
+
+| Type | Keys | Example use |
+| --- | --- | --- |
+| Symmetric encryption | Same secret key | AES data encryption |
+| Asymmetric encryption | Public/private pair | Key exchange, signatures |
+| Hashing | No decryption key | Integrity, password verification |
+
+Hashing is one-way and is not encryption. Passwords should use a dedicated
+password-hashing algorithm such as Argon2, bcrypt, or scrypt on the server.
+
+---
+
+## A19. What is SSL pinning, and what happens when a pin expires?
+
+**Interview answer:**  
+SSL/TLS pinning makes the app accept only an expected certificate or public key
+in addition to normal trust checks. It reduces some man-in-the-middle risks.
+
+If the pinned certificate/key changes or expires without a valid backup pin and
+rotation plan, HTTPS calls fail even when the server has a generally valid new
+certificate.
+
+**Production answer:** ship backup pins, overlap rotation, monitor expiry, and
+have an emergency update strategy. Pinning is not a replacement for backend
+authorization.
+
+---
+
+## A20. What is JWT?
+
+**Interview answer:**  
+JWT is a compact token format containing encoded claims and usually a digital
+signature. A server may issue it after authentication and verify it on API
+requests.
+
+```text
+header.payload.signature
+```
+
+JWT payloads are normally encoded, **not encrypted**, so do not place secrets in
+claims. Use short expiry, validate issuer/audience/signature, store tokens
+securely, and enforce authorization on the server.
+
+---
+
+## A21. `MethodChannel` vs `EventChannel`
 
 | MethodChannel | EventChannel |
 | --- | --- |
-| One request, one response | Multiple events over time |
-| Returns a `Future` | Returns a `Stream` |
-| Battery level on demand | Accelerometer or connectivity updates |
+| One request and response | Continuous native events |
+| Returns `Future` | Returns `Stream` |
+| Get battery level | Listen to sensor/connectivity |
 
-### 6. When should MethodChannel be used instead of EventChannel?
+**Remember:** `method = ask once`, `event = listen continuously`.
 
-Use `MethodChannel` when the operation is command-like or one-shot. Use
-`EventChannel` when the platform continuously pushes values.
-
-### 7. Where is EventChannel more suitable?
-
-Sensor data, call-state updates, download progress, Bluetooth events, or native
-location updates are better represented as streams.
-
-### 8. How are native errors handled?
-
-Native code returns a structured error. Dart catches `PlatformException` and
-maps its code/message/details into an application failure. Do not display raw
-native stack traces to users.
-
-**Status:** Documented. This project currently uses plugins such as `sqflite`,
-which internally use platform integration.
+Catch `PlatformException` and map native errors to app failures.
 
 ---
 
-# 2. Widgets And Widget Trees
+## A22. What is `WidgetsBindingObserver`?
 
-**Memory line:** `Widget configures; Element connects; RenderObject lays out and paints.`
+**Interview answer:**  
+It lets an object observe app and system lifecycle events such as foreground,
+background, locale, metrics, accessibility, and platform brightness changes.
 
-## Questions And Answers
+```dart
+class PageState extends State<Page> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
-### 1. What is a Widget?
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {}
 
-A widget is an immutable description of part of the UI.
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+}
+```
 
-### 2. StatelessWidget vs StatefulWidget?
+Project example:
+[InterviewConceptsPage](../lib/interview_examples/view/interview_concepts_page.dart).
 
-| StatelessWidget | StatefulWidget |
+---
+
+## A23. What is `mounted`?
+
+**Interview answer:**  
+`mounted` tells whether a `State` object is currently attached to the widget
+tree. After asynchronous work, check it before using `context` or `setState`.
+
+```dart
+await saveNote();
+if (!mounted) return;
+Navigator.pop(context);
+```
+
+```text
+initState -> mounted true
+dispose   -> mounted false
+```
+
+---
+
+## A24. What types of navigation are available in Flutter?
+
+**Interview answer:**  
+Flutter supports imperative navigation with `Navigator` and declarative routing
+with a Router API/package such as `go_router`.
+
+| Style | Example |
 | --- | --- |
-| No mutable `State` object | Creates a mutable `State` object |
-| Output depends on inputs/inherited data | Output can change during its lifetime |
-| Example: `Text`, `Icon` | Example: `TextField`, `Checkbox` |
+| Anonymous route | `Navigator.push(MaterialPageRoute(...))` |
+| Named route | `Navigator.pushNamed('/details')` |
+| Generated route | `onGenerateRoute` creates routes |
+| Declarative router | Route configuration represents app state/URL |
 
-### 3-6. Examples and classifications
-
-- `Text`, `Icon`, `Padding`, and `Row` are stateless widgets.
-- `TextField`, `Checkbox`, `Form`, and `AnimatedContainer` are stateful widgets.
-- `Text()` is a `StatelessWidget`.
-- `TextField()` is a `StatefulWidget` because it manages editable interaction,
-  focus, selection, and connection to an editing controller.
-
-### 7. What is the Widget Tree?
-
-It is the hierarchy of immutable widget configurations returned by `build`.
-
-### 8. Widget Tree vs Element Tree vs Render Tree?
-
-| Tree | Responsibility | Lifetime |
-| --- | --- | --- |
-| Widget | Immutable configuration | Often recreated |
-| Element | Mounted identity and parent/child relationship | Reused when possible |
-| RenderObject | Constraints, size, painting, hit testing | Reused when possible |
-
-### 9-10. How are widgets converted into mobile UI?
-
-Flutter inflates widgets into elements. RenderObject elements create/update
-render objects. Render objects perform layout and painting, and the engine
-composites/rasterizes the frame.
-
-### 11. What happens when a widget rebuilds?
-
-Flutter creates new widget descriptions and asks existing elements to update.
-If runtime type and key match, the element/render object can be reused; otherwise
-that subtree is replaced.
-
-### 12. Container vs Stack?
-
-`Container` styles or sizes one child. `Stack` overlays multiple children and
-can position them with `Positioned`.
-
-### 13. When should Stack be used?
-
-Use it for badges, overlays, floating labels, image captions, or layered UI.
-Avoid it when normal `Row`, `Column`, or constraint-based layout is sufficient.
-
-### 14. What is LayoutBuilder?
-
-`LayoutBuilder` builds based on the constraints supplied by its parent.
-
-```dart
-LayoutBuilder(
-  builder: (context, constraints) {
-    return constraints.maxWidth >= 600
-        ? const WideLayout()
-        : const CompactLayout();
-  },
-);
-```
-
-**Implemented:** [responsive example](../lib/interview_examples/view/interview_concepts_page.dart).
-
-### 15. What is Builder?
-
-`Builder` creates a new `BuildContext` below its location. It is useful when an
-operation needs a context that can see a newly inserted ancestor.
-
-### 16. LayoutBuilder vs Builder?
-
-`Builder` provides a new context. `LayoutBuilder` provides a context plus parent
-layout constraints and may rebuild when constraints change.
-
-### 17-18. What is FutureBuilder and when should it be used?
-
-`FutureBuilder` converts a `Future` snapshot into UI. Use it for small,
-widget-owned one-shot asynchronous work. Cache the future outside `build` if it
-must not restart on every rebuild.
-
-### 19-20. What is an event listener and event handling?
-
-An event listener is a callback registered for user, stream, controller, or
-system events.
-
-```dart
-FilledButton(
-  onPressed: () => debugPrint('Tapped'),
-  child: const Text('Save'),
-);
-```
-
-**Demonstrated:** [FutureBuilder, StreamBuilder and listeners](../lib/interview_examples/view/interview_concepts_page.dart).
+Use a declarative router for deep links, web URLs, redirects, and larger apps.
 
 ---
 
-# 3. StatefulWidget Lifecycle
+## A25. What is required to publish to Play Store and App Store?
 
-**Memory order:** `create -> init -> dependencies -> build -> update -> deactivate -> dispose`.
+### Google Play
 
-## Questions And Answers
+- Play Console developer account
+- Unique application ID and signed Android App Bundle (`.aab`)
+- Release signing key managed safely
+- Store listing, screenshots, icon, category, countries
+- Privacy policy, data-safety form, content rating, audience declarations
+- Permission and policy compliance
 
-### 1-3. What is setState, why use it, and what happens?
+### Apple App Store
 
-`setState` synchronously changes state and marks the element dirty. Flutter
-schedules a rebuild; it does not immediately repaint the whole application.
+- Apple Developer membership
+- macOS/Xcode for signing and upload
+- Bundle ID, certificates/signing, provisioning configuration
+- Archive/upload through Xcode or CI
+- App Store Connect listing, screenshots, privacy details, review information
+
+Requirements change, so verify current store policies before each release.
+
+---
+
+## A26. What is sound null safety?
+
+**Interview answer:**  
+Sound null safety makes types non-nullable by default and catches unsafe null
+access at compile time when all code is null safe.
+
+```dart
+String name = 'Sumit'; // Cannot be null.
+String? nickname;      // May be null.
+final length = nickname?.length;
+```
+
+**Remember:** `? allows null`, `?. accesses safely`, `?? supplies fallback`.
+
+---
+
+## A27. What are `late` and `!`?
+
+**Interview answer:**  
+`late` delays initialization of a non-nullable variable. `!` asserts that a
+nullable value is non-null at runtime.
+
+```dart
+late final TextEditingController controller;
+
+void initState() {
+  controller = TextEditingController();
+}
+
+String? token;
+final value = token!; // Throws if token is null.
+```
+
+Prefer proper flow checks over `!`. `late` also throws if read before
+initialization.
+
+---
+
+## A28. What is the difference between JIT and AOT?
+
+| JIT | AOT |
+| --- | --- |
+| Compiles during execution | Compiles before execution |
+| Development/debug | Release mobile builds |
+| Enables hot reload | Faster startup and predictable runtime |
+
+**Remember:** `JIT = speed of coding`, `AOT = speed of released app`.
+
+Flutter web has different compilation/runtime paths, so avoid claiming every
+Flutter release uses the same native AOT mechanism.
+
+---
+
+## A29. `InheritedWidget` vs Provider
+
+**Interview answer:**  
+`InheritedWidget` is Flutter's low-level mechanism for sharing data with
+descendants and rebuilding dependents. Provider offers a simpler API for
+creation, lookup, updates, and disposal using inherited mechanisms.
+
+| InheritedWidget | Provider |
+| --- | --- |
+| Framework primitive | Higher-level package |
+| Manual boilerplate | Easier common patterns |
+| Full custom control | Better convenience/scalability |
+
+Riverpod uses a provider graph and `Ref`, so it does not require
+`BuildContext` for dependency reads.
+
+---
+
+## A30. How would you design a scalable mobile architecture?
+
+**Interview answer:**  
+I separate presentation, domain, and data responsibilities, depend on
+abstractions, and keep framework/network/database details outside business
+rules.
+
+```text
+Presentation
+  Widget -> BLoC/Notifier/Controller
+Domain
+  UseCase -> Repository contract -> Entity
+Data
+  Repository implementation -> Remote/Local data source -> DTO
+```
+
+Add typed failures, dependency injection, environment configuration, tests,
+logging, caching, pagination, and security based on actual complexity.
+
+Project note: this sample is layered and MVVM-inspired rather than full Clean
+Architecture. See [README](../README.md#10-is-this-clean-architecture-mvvm-or-ddd).
+
+---
+
+## A31. What is caching and offline support?
+
+**Interview answer:**  
+Caching stores previously fetched data to improve speed, reduce network usage,
+and optionally support offline access.
+
+```text
+UI asks repository
+-> return fresh cache if valid
+-> otherwise fetch remote
+-> save local copy
+-> return data
+```
+
+| Storage | Use |
+| --- | --- |
+| Memory | Fast temporary cache |
+| SharedPreferences | Small non-sensitive settings |
+| SQLite/Hive/files | Structured or larger persistent data |
+| Secure storage | Small credentials, not general cache |
+
+Define source of truth, expiry, invalidation, conflict resolution, and sync
+rules. “Store everything locally” is not a cache strategy.
+
+---
+
+## A32. What is an interceptor and why is it used?
+
+**Interview answer:**  
+An interceptor is middleware around HTTP requests, responses, and errors. It
+centralizes common networking logic.
+
+Common uses:
+
+- Add authorization and common headers
+- Log safe request/response metadata
+- Convert errors consistently
+- Refresh expired access tokens
+- Retry temporary failures
+- Add correlation IDs
+
+For simultaneous `401` responses, use one synchronized refresh operation and
+queue/replay eligible requests once. Never log tokens or sensitive payloads.
+
+---
+
+## A33. What are Flutter build modes?
+
+| Mode | Use | Characteristics |
+| --- | --- | --- |
+| Debug | Development | Assertions, service extensions, hot reload |
+| Profile | Performance analysis | Near-release behavior plus profiling |
+| Release | Production | Optimized, assertions/service extensions removed |
+
+**Remember:** `debug = develop`, `profile = measure`, `release = ship`.
+
+Measure performance in profile mode on a physical device, not debug mode.
+
+---
+
+## A34. What is an isolate?
+
+**Interview answer:**  
+An isolate is an independent Dart execution context with its own memory and
+event loop. Isolates communicate by message passing.
+
+Use an isolate for CPU-heavy work that would block frames, such as large JSON
+parsing, image processing, or expensive calculations.
+
+```dart
+final result = await Isolate.run(() => calculateLargeReport(data));
+```
+
+For simple Flutter-compatible functions, `compute` is also convenient.
+
+---
+
+## A35. Isolate vs thread, and why use isolates?
+
+| Isolate | Typical shared-memory thread |
+| --- | --- |
+| Separate Dart heap | Shared process memory |
+| Message passing | Shared-state synchronization |
+| Avoids shared-Dart-memory data races | Locks/races/deadlocks are concerns |
+| Heavier communication/copy cost | Cheap shared access but riskier |
+
+Do not say Dart or Flutter has no threads. The engine and platform use threads;
+Dart application concurrency is exposed primarily through isolates.
+
+**Remember:** `thread shares`, `isolate sends`.
+
+---
+
+## A36. Write factorial using recursion
+
+```dart
+int factorial(int number) {
+  if (number < 0) {
+    throw ArgumentError('Factorial is undefined for negative numbers');
+  }
+  if (number <= 1) return 1;
+  return number * factorial(number - 1);
+}
+```
+
+Time complexity is `O(n)` and recursive space is `O(n)`. Large values overflow
+fixed-width integers in many languages and deep recursion can overflow the
+stack.
+
+---
+
+## A37. Write factorial using iteration
+
+```dart
+int factorial(int number) {
+  if (number < 0) {
+    throw ArgumentError('Factorial is undefined for negative numbers');
+  }
+
+  var result = 1;
+  for (var value = 2; value <= number; value++) {
+    result *= value;
+  }
+  return result;
+}
+```
+
+This is iteration, not an “array solution.” Time is `O(n)` and extra space is
+`O(1)`.
+
+---
+
+## A38. Widget tree vs Element tree vs RenderObject tree
+
+**Interview answer:**  
+Widgets describe configuration, elements preserve mounted identity and
+lifecycle, and render objects perform layout, painting, and hit testing.
+
+```text
+Widget       = what UI should be
+Element      = mounted manager/connection
+RenderObject = size, position, paint, hit test
+```
+
+Widgets are recreated frequently. Elements and render objects are reused when
+Flutter can match runtime type and key.
+
+---
+
+## A39. What actually happens when `setState()` is called?
+
+**Interview answer:**  
+`setState` runs its callback synchronously, marks that element dirty, and
+schedules a rebuild of that widget's subtree. Flutter then updates only changed
+parts through element reconciliation and the rendering pipeline.
+
+It does **not** recreate or repaint the entire app.
 
 ```dart
 setState(() {
@@ -271,1742 +788,868 @@ setState(() {
 });
 ```
 
-Use it for local state owned by one widget, not as a replacement for shared
-business-state architecture.
-
-### 4. Explain the lifecycle
-
-```text
-createState
-  -> initState (once)
-  -> didChangeDependencies
-  -> build (many times)
-  -> didUpdateWidget (new configuration)
-  -> build
-  -> deactivate
-  -> dispose (once)
-```
-
-### 5. What is createState?
-
-`StatefulWidget.createState` creates the mutable `State` object.
-
-### 6-7. What is initState and when is it called?
-
-`initState` runs once after the state is inserted into the tree. Initialize
-controllers, observers, subscriptions, and cached futures here. Do not call
-`dependOnInheritedWidgetOfExactType` here.
-
-### 8-9. What is build and when is it called?
-
-`build` returns the current widget configuration. It can run after `setState`,
-dependency changes, parent rebuilds, widget updates, or hot reload, so keep it
-fast and free of side effects.
-
-### 10-11. What is didChangeDependencies?
-
-It runs after `initState` and when an inherited dependency used by the state
-changes, such as theme, locale, or provider data.
-
-### 12-13. What is didUpdateWidget?
-
-It runs when the parent supplies a new widget of the same type/key. Compare old
-and new properties and replace subscriptions when necessary.
-
-### 14-15. What is dispose and why is it important?
-
-`dispose` is the final cleanup hook. Remove observers and dispose controllers,
-focus nodes, animation controllers, and streams to prevent leaks and callbacks
-to dead state.
-
-### 16-17. What is mounted and why check it?
-
-`mounted` indicates whether the state is still in the tree. After `await`, check
-it before using `context` or calling `setState`.
-
-```dart
-await save();
-if (!mounted) return;
-Navigator.pop(context);
-```
-
-### 18-20. What is WidgetsBindingObserver and lifecycle detection?
-
-It listens to application/system lifecycle changes.
-
-```dart
-class PageState extends State<Page> with WidgetsBindingObserver {
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // resumed, inactive, paused, hidden, detached
-  }
-}
-```
-
-Register in `initState` and remove in `dispose`.
-
-**Implemented:** [lifecycle example](../lib/interview_examples/view/interview_concepts_page.dart).
+Keep the callback synchronous and change only the relevant local state.
 
 ---
 
-# 4. InheritedWidget And State Sharing
+## A40. What is Flutter architecture?
 
-**Memory line:** `InheritedWidget efficiently exposes data downward through context.`
+**Interview answer:**  
+Flutter has a Dart framework, a C++ engine, and platform embedders.
 
-## Questions And Answers
-
-### 1-3. What is InheritedWidget, why and when use it?
-
-`InheritedWidget` is a framework primitive for efficiently sharing immutable
-data with descendant widgets and rebuilding dependents when that data changes.
-Use it when building a small custom dependency API; otherwise a package often
-reduces boilerplate.
-
-### 4. How does it pass data?
-
-An ancestor inserts an `InheritedWidget`. A descendant looks it up through
-`BuildContext`; Flutter records the dependency and rebuilds the descendant when
-`updateShouldNotify` returns true.
-
-### 5. InheritedWidget vs Provider?
-
-| InheritedWidget | Provider |
-| --- | --- |
-| Low-level Flutter primitive | Higher-level package built around inherited mechanisms |
-| Manual lookup/update API | Creation, disposal, lookup, and common patterns |
-| More control and boilerplate | Easier application use |
-
-### 6. How does dependOnInheritedWidgetOfExactType work?
-
-It searches the nearest ancestor of the requested type and registers the
-calling element as a dependent.
-
-### 7. Example
-
-```dart
-class AppConfig extends InheritedWidget {
-  final String apiBaseUrl;
-
-  const AppConfig({
-    super.key,
-    required this.apiBaseUrl,
-    required super.child,
-  });
-
-  static AppConfig of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<AppConfig>()!;
-  }
-
-  @override
-  bool updateShouldNotify(AppConfig oldWidget) {
-    return apiBaseUrl != oldWidget.apiBaseUrl;
-  }
-}
+```text
+App
+-> Framework: widgets, gestures, animation, rendering abstractions
+-> Engine: Dart runtime, text, compositing, graphics/rasterization
+-> Embedder: window, input, lifecycle, native platform integration
+-> OS/GPU
 ```
 
-### 8. What problem does it solve?
-
-It avoids manually passing the same data through every intermediate widget
-while keeping dependency tracking efficient.
+Do not say Flutter always renders only with Skia. Modern Flutter uses Impeller
+by default on major mobile targets, while Skia remains relevant on other
+platforms/backends.
 
 ---
 
-# 5. Flutter Architecture
+## A41. What is Google OAuth 2.0?
 
-**Memory line:** `Framework (Dart) -> Engine (C++) -> Embedder (platform).`
-
-## Questions And Answers
-
-### 1-2. Explain Flutter architecture and layers
-
-```text
-Application
-  -> Flutter framework: widgets, gestures, animation, rendering abstractions
-  -> Flutter engine: Dart runtime, text, graphics, compositing, rasterization
-  -> Platform embedder: window, lifecycle, input, surfaces, platform integration
-  -> Operating system and GPU
-```
-
-### 3. Role of the framework
-
-The Dart framework supplies Material/Cupertino widgets, layout, gestures,
-animation, painting, semantics, and foundation APIs.
-
-### 4. Role of the engine
-
-The C++ engine hosts the Dart runtime, frame scheduling, text layout,
-compositing, graphics backends, and communication with the embedder.
-
-### 5. What is Skia?
-
-Skia is a graphics library historically central to Flutter rasterization and
-still relevant on some platforms/backends. Modern Flutter uses **Impeller by
-default on major mobile targets**, so saying “Flutter always renders with Skia”
-is outdated.
-
-### 6. What is the Dart runtime?
-
-It executes Dart code. Development uses JIT capabilities for fast iteration and
-hot reload; release mobile builds generally use ahead-of-time compiled native
-code.
-
-### 7-8. Cross-platform vs native rendering
-
-Flutter usually owns its rendering pipeline and draws consistent pixels rather
-than mapping every widget to an OEM UI control. Native frameworks primarily use
-platform UI components. Flutter can still embed native platform views.
-
-### 9. Gestures, layout, painting, rendering
+**Interview answer:**  
+OAuth 2.0 is an authorization framework. Google Sign-In commonly combines OAuth
+2.0 with OpenID Connect so the app can authenticate a user and obtain
+authorization tokens without receiving the user's Google password.
 
 ```text
-Pointer event -> gesture arena -> callback
-Constraints down -> sizes up -> positions set
-RenderObjects paint -> layers composed -> engine rasterizes frame
+App requests sign-in
+-> Google user consent/authentication
+-> app receives authorization result/tokens
+-> backend verifies ID token
+-> backend creates its own session
 ```
 
-### 10. How does execution start from main?
-
-The Dart isolate invokes `main`, initialization runs, `runApp` attaches the root
-widget, and Flutter builds/schedules the first frame.
-
-**Implemented:** [application entry point](../lib/main.dart).
+An access token authorizes Google API access. An ID token is a signed identity
+token. Verify important tokens on the backend.
 
 ---
 
-# 6. Clean Architecture
+## A42. How do you call and manage a REST API?
 
-**Memory flow:** `UI -> UseCase -> Repository contract -> Repository implementation -> Data source`.
-
-## Questions And Answers
-
-### 1-3. What is Clean Architecture and its layers?
-
-Clean Architecture separates policy from details. A common Flutter form is:
-
-| Layer | Owns |
-| --- | --- |
-| Presentation | Widgets, state managers, UI models |
-| Domain | Entities, repository contracts, use cases, business rules |
-| Data | DTOs, repository implementations, API/database data sources |
-
-Dependencies point inward toward business rules.
-
-### 4. Explain presentation, domain, and data
-
-- Presentation converts user actions into calls and state into widgets.
-- Domain describes business meaning independent of Flutter/HTTP/SQLite.
-- Data implements persistence/network details and mapping.
-
-### 5. What is an Entity?
-
-An entity is a business object defined by domain identity and rules, not by JSON
-or database shape.
-
-### 6. What is a Model?
-
-“Model” is broad. In architecture discussions, specify whether it is a domain
-entity, API DTO, database row model, or UI model.
-
-### 7. What is a Repository?
-
-A repository is a domain-facing abstraction that hides data-source details.
-
-### 8. What is a UseCase?
-
-A use case represents one application action, such as `CreateNote`,
-`TransferMoney`, or `Login`, and coordinates relevant business rules.
-
-### 9. Repository vs UseCase?
-
-| UseCase | Repository |
-| --- | --- |
-| Describes an action/business workflow | Describes data access capability |
-| Calls one or more repositories | Calls data sources |
-| May validate business rules | Hides API/database implementation |
-
-### 10-13. UI-to-API data flow
+**Interview answer:**  
+I keep HTTP in the data layer and expose it through a repository contract. The
+state manager controls loading, success, and failure for the UI.
 
 ```text
-UI event
- -> state manager
- -> use case
- -> repository interface
- -> repository implementation
- -> remote data source
- -> HTTP client
- -> map DTO to entity
- -> result/failure returns to UI
+Widget
+-> State manager
+-> Use case (when needed)
+-> Repository contract
+-> Repository implementation
+-> Remote data source
+-> HTTP client
 ```
 
-### 14. Where should business logic be written?
+Handle timeouts, typed errors, parsing, authentication, cancellation,
+pagination, caching, retries, and secure logs at the correct layer.
 
-Domain rules belong in entities/use cases/domain services. UI behavior belongs
-in presentation. SQL, HTTP, and serialization belong in data.
-
-### 15. Where should API mapping logic be written?
-
-Map JSON in a DTO/data mapper inside the data layer, then return domain objects
-to higher layers.
-
-### 16. Advantages
-
-Testability, replaceable infrastructure, clearer ownership, smaller change
-impact, and independent business rules.
-
-### 17. How are API errors handled?
-
-Catch low-level client exceptions in the data layer, map them to typed failures,
-and let presentation convert failures into user-safe state/messages.
-
-### 18. How are layers tested?
-
-- Domain: pure unit tests
-- Data: repository/data-source tests with fake clients or test databases
-- Presentation: state-manager unit tests and widget tests
-- Critical flows: integration tests
-
-**Project note:** This repository is layered and MVVM-inspired, not full Clean
-Architecture because it intentionally omits use-case classes and separate
-domain/data models. It does implement
-[`NoteRepository`](../lib/core/repository/note_repository.dart) dependency
-inversion and has [layered tests](../test/README.md).
+Project boundary:
+[NoteRemoteDataSource](../lib/core/data/note_data_sources.dart).
 
 ---
 
-# 7. Riverpod And Provider
+## A43. What is Dio?
 
-**Memory line:** `watch rebuilds; read acts once; listen performs a side effect.`
-
-## Questions And Answers
-
-### 1. What is Provider?
-
-Provider is a Flutter package that exposes objects through the widget tree using
-`BuildContext` and inherited-widget mechanisms.
-
-### 2. What is Riverpod?
-
-Riverpod is a reactive state and dependency-management library where providers
-form a graph outside the widget tree and are consumed through `Ref`.
-
-### 3-5. Provider vs Riverpod and advantages
-
-| Provider | Riverpod |
-| --- | --- |
-| Reads through `BuildContext` | Reads through `Ref` |
-| Primarily widget-tree scoped | Provider graph is independently testable |
-| Runtime lookup mistakes are possible | Dependencies are explicit providers |
-| Overrides usually involve widget setup | `ProviderContainer` supports direct overrides |
-
-Riverpod is not automatically “better”; it is often preferred for compile-time
-provider references, test overrides, async state, and context-free dependency
-access. Provider remains simple and effective for many apps.
-
-### 6. How does Riverpod remove BuildContext dependency?
-
-Provider callbacks and consumers receive `Ref`, so repositories/notifiers can
-read providers without a widget context.
-
-### 7-8. How do you update data and implement Riverpod?
-
-```text
-1. Wrap app in ProviderScope
-2. Define dependency providers
-3. Define a Notifier/AsyncNotifier provider
-4. ref.watch state in UI
-5. ref.read(provider.notifier).method() for actions
-6. Render loading/data/error
-```
+**Interview answer:**  
+Dio is a Dart HTTP client with request options, interceptors, cancellation,
+timeouts, uploads/downloads, and progress callbacks.
 
 ```dart
-final counterProvider = NotifierProvider<Counter, int>(Counter.new);
-
-class Counter extends Notifier<int> {
-  @override
-  int build() => 0;
-
-  void increment() => state++;
-}
-```
-
-### 9. What is ProviderScope?
-
-`ProviderScope` stores provider state and enables overrides for the Flutter
-subtree. It is normally placed above the app.
-
-### 10-13. watch vs read vs listen
-
-| API | Use |
-| --- | --- |
-| `ref.watch(provider)` | Subscribe and rebuild/recompute when value changes |
-| `ref.read(provider)` | Read once, commonly inside event callbacks |
-| `ref.listen(provider, ...)` | Run a side effect such as navigation/snackbar |
-
-Do not use `read` to avoid rebuilds when the UI actually depends on the value.
-
-### 14. What is StateProvider?
-
-A provider for simple mutable values such as a filter or selected index. For
-business logic, prefer a notifier.
-
-### 15. What is FutureProvider?
-
-It exposes a future as `AsyncValue<T>`, useful for read-only async data.
-
-### 16. What is StreamProvider?
-
-It exposes stream events as `AsyncValue<T>`, useful for real-time data.
-
-### 17. What is StateNotifierProvider?
-
-It exposes a `StateNotifier`. It is common in older Riverpod code and still
-supported in Riverpod 2, but modern Riverpod generally favors `Notifier` and
-`AsyncNotifier` for new code.
-
-### 18. What is NotifierProvider?
-
-It exposes synchronous state and methods owned by a `Notifier`.
-
-### 19. What is AsyncNotifierProvider?
-
-It exposes asynchronous state through `AsyncValue`, with a notifier that can
-load and mutate data.
-
-### 20. Notifier vs StateNotifier?
-
-| Notifier | StateNotifier |
-| --- | --- |
-| Riverpod-native lifecycle and `ref` | Independent package/class pattern |
-| Dependencies read in `build`/methods | Dependencies usually constructor-injected |
-| Recommended for modern Riverpod | Common in existing Riverpod 1/2 code |
-
-### 21-22. API call and loading/success/error
-
-```dart
-class Users extends AsyncNotifier<List<User>> {
-  @override
-  Future<List<User>> build() => ref.read(apiProvider).fetchUsers();
-
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => ref.read(apiProvider).fetchUsers(),
-    );
-  }
-}
-```
-
-```dart
-return ref.watch(usersProvider).when(
-  loading: () => const CircularProgressIndicator(),
-  error: (error, stack) => Text('$error'),
-  data: (users) => UsersList(users),
+final dio = Dio(
+  BaseOptions(
+    baseUrl: 'https://api.example.com',
+    connectTimeout: const Duration(seconds: 10),
+  ),
 );
+
+final response = await dio.get<Map<String, dynamic>>('/users/1');
 ```
 
-### 23. How do you refresh?
-
-Call a notifier method, invalidate the provider with `ref.invalidate`, or
-refresh/read its future depending on ownership and required behavior.
-
-### 24. How do you retain registration form data?
-
-Put form state in a notifier that outlives the page route, scope its provider
-above the flow, and do not use `autoDispose` unless keeping it alive
-intentionally. Clear it after successful submission/cancellation.
-
-### 25. Riverpod with RxDart?
-
-A repository can expose RxDart streams and Riverpod can consume them with
-`StreamProvider`. Do not add RxDart only to duplicate Riverpod state; use it
-when stream operators such as debounce, combineLatest, or switching are needed.
-
-**Implemented:** [ProviderScope](../lib/main.dart),
-[AsyncNotifier](../lib/riverpod_example/viewmodel/riverpod_note_view_model.dart),
-[AsyncValue UI](../lib/riverpod_example/view/riverpod_notes_list_page.dart), and
-[provider override test](../test/riverpod/riverpod_note_view_model_test.dart).
+The `http` package is also valid for simpler needs. Choose based on required
+features.
 
 ---
 
-# 8. BLoC And Cubit
+## A44. What is Retrofit in Flutter?
 
-**Memory line:** `BLoC: Event in, State out. Cubit: Method in, State out.`
-
-## Questions And Answers
-
-### 1-4. What is BLoC, Event, and State?
-
-BLoC separates user/system inputs from output state.
-
-```text
-UI -> AddNoteEvent -> NoteBloc -> repository -> NoteState -> UI
-```
-
-An event describes what happened. A state is the immutable UI-relevant result.
-
-### 5. How does UI update?
-
-`BlocBuilder` subscribes to the bloc stream and rebuilds when a new state is
-emitted.
-
-### 6. What is BlocBuilder?
-
-It rebuilds UI from state and should remain free of navigation/snackbar side
-effects.
-
-### 7. What is BlocListener?
-
-It reacts once to state changes for side effects such as navigation, dialogs,
-analytics, or snackbars.
-
-### 8. What is BlocConsumer?
-
-It combines `BlocBuilder` and `BlocListener` when the same subtree needs both.
-
-### 9. What is Cubit?
-
-Cubit is a simpler state container where public methods directly emit states;
-there is no event class/handler layer.
-
-### 10. BLoC vs Cubit?
-
-| BLoC | Cubit |
-| --- | --- |
-| Events are explicit inputs | Methods are inputs |
-| Better event trace/audit vocabulary | Less boilerplate |
-| Supports event transformers | Straightforward state changes |
-
-### 11-13. When to use each?
-
-Use BLoC for complex workflows, many event sources, auditability, debounce or
-concurrency rules, and strict team conventions. Use Cubit for simpler screens
-where named methods communicate intent clearly. Choose BLoC over Cubit when the
-event history itself has business meaning.
-
-### 14. Login flow example
-
-```text
-LoginSubmitted
- -> LoginLoading
- -> repository.login
- -> LoginSuccess(user) OR LoginFailure(message)
- -> listener navigates or shows error
-```
-
-### 15. Loading, success, and failure
-
-Emit loading before the repository call, success with required data, and a
-typed/user-safe failure on exception. Preserve previous data when the UX needs
-refresh-in-place instead of blank loading.
-
-**Implemented:** [events](../lib/bloc_example/viewmodel/note_event.dart),
-[state](../lib/bloc_example/viewmodel/note_state.dart),
-[BLoC](../lib/bloc_example/viewmodel/note_bloc.dart), and
-[`BlocConsumer`](../lib/bloc_example/view/bloc_add_note_page.dart).
-
----
-
-# 9. Freezed And Immutable Classes
-
-**Memory line:** `Freezed generates immutable value classes, copyWith, equality, unions, and JSON helpers.`
-
-## Questions And Answers
-
-### 1-4. What is Freezed, why, when, and benefits?
-
-Freezed is a code generator for immutable Dart classes and sealed unions. Use it
-for value models or state where equality, `copyWith`, exhaustive variants, and
-JSON generation reduce error-prone boilerplate.
-
-### 5. What is immutability?
-
-An immutable object's observable fields do not change after construction.
-Updates create a new object.
-
-### 6-7. Can it be updated and how does copyWith work?
-
-Do not mutate it. Create a changed copy:
+**Interview answer:**  
+Retrofit for Dart is a code generator that creates typed API client
+implementations from annotated interfaces, commonly on top of Dio.
 
 ```dart
-final updated = user.copyWith(name: 'Sumit');
-```
+@RestApi(baseUrl: 'https://api.example.com')
+abstract class ApiClient {
+  factory ApiClient(Dio dio) = _ApiClient;
 
-### 8-10. API mapping and JSON serialization
-
-Freezed works with `json_serializable` to generate `fromJson`/`toJson`. Keep API
-DTO concerns separate from domain entities in a strict architecture.
-
-### 11-12. Example
-
-```dart
-@freezed
-class User with _$User {
-  const factory User({
-    required int id,
-    required String name,
-  }) = _User;
-
-  factory User.fromJson(Map<String, dynamic> json) =>
-      _$UserFromJson(json);
+  @GET('/users')
+  Future<List<UserDto>> getUsers();
 }
-
-final changed = user.copyWith(name: 'New name');
 ```
-
-### 13. Normal class vs Freezed?
-
-| Manual immutable class | Freezed |
-| --- | --- |
-| No build generation | Requires generator/build step |
-| Full manual control | Generates equality/copy/union/JSON glue |
-| More boilerplate | Less boilerplate |
-
-### 14. How does Freezed help state management?
-
-Value equality and immutable copies make state transitions predictable.
-Sealed states can model loading/data/error exhaustively.
-
-**Project equivalent:** This sample intentionally uses a manual immutable
-[`NoteModel`](../lib/core/models/note_model.dart) and
-[`NoteState`](../lib/bloc_example/viewmodel/note_state.dart) so interviewers can
-see what Freezed would generate.
-
----
-
-# 10. API Integration And Networking
-
-**Memory flow:** `UI -> state manager -> repository -> client -> map -> state`.
-
-## Questions And Answers
-
-### 1-5. How do you integrate an API and update UI?
-
-```text
-1. Define remote data-source contract
-2. Configure HTTP client
-3. Call endpoint and validate status/body
-4. Parse DTO
-5. Repository maps/returns domain data
-6. State manager emits loading, data, or failure
-7. UI renders state
-```
-
-Never call HTTP directly from `build`.
-
-### 6-8. What is Dio and why use it over http?
-
-Dio is a Dart HTTP client with interceptors, cancellation, timeout
-configuration, uploads/downloads, progress, and rich options. The `http`
-package is smaller and often enough for simple calls. Choose based on needs,
-not popularity.
-
-### 9-11. What is Retrofit and Dio vs Retrofit?
-
-Retrofit for Dart is a declarative API-client generator built on Dio.
 
 | Dio | Retrofit |
 | --- | --- |
-| Executes/configures HTTP | Generates typed endpoint methods |
-| Imperative requests | Annotation-based interface |
-| Can work alone | Flutter Retrofit commonly depends on Dio |
-
-### 12-14. What is an interceptor and how are headers added?
-
-An interceptor observes/modifies requests, responses, and errors globally.
-
-```dart
-dio.interceptors.add(
-  InterceptorsWrapper(
-    onRequest: (options, handler) async {
-      final token = await tokenStore.readAccessToken();
-      if (token != null) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-      handler.next(options);
-    },
-  ),
-);
-```
-
-### 15-16. Token expiry and retry
-
-On `401`, allow one synchronized refresh request, store the new token, clone and
-retry queued requests once. Prevent infinite loops and multiple simultaneous
-refresh calls. If refresh fails, clear the session and navigate to login.
-
-### 17. API timeout
-
-Configure connect/send/receive timeouts, map timeout exceptions to a retryable
-failure, and offer retry where the operation is idempotent.
-
-### 18-20. Session timeout and logout
-
-Session timeout is server/client policy that invalidates an inactive or expired
-session. Clear secure tokens and sensitive cached state, reset protected
-providers/controllers, and route to authentication.
-
-### 21-23. Token, access token, refresh token
-
-- Token: credential/value representing authorization or identity context.
-- Access token: short-lived credential sent to APIs.
-- Refresh token: longer-lived credential used only to request a new access
-  token.
-
-### 24. Secure token storage
-
-Use Keychain on Apple platforms and Keystore-backed encrypted storage on
-Android through a maintained secure-storage plugin. Never commit tokens or
-secret keys.
-
-### 25. What to do on 401?
-
-Distinguish expired access token from invalid credentials. Try the synchronized
-refresh flow once; otherwise end the session.
-
-### 26-27. Global errors and UI messages
-
-Map transport/client exceptions to typed failures in the data layer. Log
-technical context securely, while UI displays actionable messages such as
-“Check your connection” rather than raw exceptions.
-
-**Implemented boundary:** [`NoteRemoteDataSource`](../lib/core/data/note_data_sources.dart)
-and [`ApiService`](../lib/core/api/api_service.dart). The service is simulated,
-so Dio/Retrofit/token handling are documented production extensions.
+| HTTP engine/client | Declarative generated API layer |
+| Manual request code | Annotated endpoint methods |
+| Maximum direct control | Less repetitive endpoint code |
 
 ---
 
-# 11. HTTP Status Codes
+## A45. How do you create Flutter flavors?
 
-**Memory groups:** `2xx success, 4xx client/request, 5xx server/upstream`.
+**Interview answer:**  
+Flavors let one codebase produce separate dev, staging, and production apps.
+Android uses Gradle product flavors; iOS uses Xcode schemes/configurations.
 
-## Status Table
+```text
+dev     -> dev API, dev app ID/name
+staging -> test services
+prod    -> production services
+```
 
-| Code | Meaning | Typical client action |
+Run with:
+
+```bash
+flutter run --flavor dev -t lib/main_dev.dart
+flutter build appbundle --flavor prod -t lib/main_prod.dart
+```
+
+Keep secrets in CI/backend secret management, not in flavor constants.
+
+---
+
+## A46. How do you handle retry, token refresh, and API failure?
+
+**Interview answer:**  
+Retry only temporary and safe failures. For `401`, refresh the token once,
+replay the original request once, and log out if refresh fails.
+
+```text
+Timeout/502/503
+-> exponential backoff + jitter
+-> limited attempts
+
+401
+-> one synchronized refresh
+-> save new token
+-> replay request once
+-> refresh fails: clear session
+```
+
+Do not blindly retry non-idempotent payment/order requests. Use idempotency keys
+where supported and prevent infinite retry loops with a retry marker.
+
+---
+
+## A47. `ListView` vs `ListView.builder`
+
+**Interview answer:**  
+`ListView(children:)` builds the supplied child widgets, so it suits small,
+known lists. `ListView.builder` creates items lazily and suits large or dynamic
+data.
+
+For transaction history, combine `ListView.builder` with pagination, stable
+keys, cached data, and lightweight row widgets.
+
+**Remember:** `small/static = ListView`, `large/dynamic = builder`.
+
+---
+
+## A48. What are SOLID principles?
+
+**Interview answer:**  
+SOLID is a set of five design principles that makes object-oriented code easier
+to change, test, and extend.
+
+| Principle | Easy meaning | Flutter example |
 | --- | --- | --- |
-| 200 | OK | Parse successful response |
-| 201 | Created | Parse created resource/location |
-| 202 | Accepted, processing later | Show pending/poll/status tracking |
-| 400 | Bad Request | Correct malformed request |
-| 401 | Unauthenticated/invalid credentials | Refresh token or login |
-| 403 | Authenticated but forbidden | Explain lack of permission |
-| 404 | Resource not found | Empty/not-found state |
-| 408 | Request timeout | Retry idempotent request |
-| 409 | Conflict | Resolve version/duplicate conflict |
-| 422 | Semantically invalid input | Show field validation errors |
-| 429 | Rate limited | Respect `Retry-After`, back off |
-| 500 | Internal server error | Generic error, retry cautiously |
-| 501 | Not implemented | Client/server contract mismatch |
-| 502 | Bad gateway | Temporary upstream failure |
-| 503 | Service unavailable | Maintenance/overload, retry later |
-| 504 | Gateway timeout | Upstream timeout, retry cautiously |
-
-### 200 vs 201 vs 202
-
-- `200`: operation completed successfully.
-- `201`: resource was created.
-- `202`: request accepted but processing is not complete.
-
-### 401 vs 403
-
-`401` means valid authentication is missing. `403` means identity is known but
-the action is not permitted.
-
-### How should 400, 401, and 500 be handled?
-
-- `400/422`: map server validation to fields/general message.
-- `401`: refresh once or log out.
-- `500`: do not blame user; show retry/support path and log correlation ID.
-
-### User-friendly error handler
+| SRP | One reason to change | Widget renders; repository loads data |
+| OCP | Extend without editing stable code | Add repository implementation |
+| LSP | Subtype safely replaces contract | Fake repository replaces real one |
+| ISP | Small focused interfaces | Separate reader/writer contracts |
+| DIP | Depend on abstractions | Controller depends on repository interface |
 
 ```dart
-String messageForStatus(int? status) {
-  return switch (status) {
-    400 || 422 => 'Please check the entered information.',
-    401 => 'Your session expired. Please sign in again.',
-    403 => 'You do not have permission for this action.',
-    404 => 'The requested item was not found.',
-    408 || 504 => 'The request timed out. Please retry.',
-    409 => 'This change conflicts with newer data.',
-    429 => 'Too many requests. Please wait and retry.',
-    >= 500 => 'The service is temporarily unavailable.',
-    _ => 'Something went wrong. Please try again.',
-  };
+abstract interface class UserRepository {
+  Future<User> getUser();
+}
+
+class UserController {
+  final UserRepository repository;
+  UserController(this.repository);
 }
 ```
 
-Do not decide success only from status code if the API contract also defines
-business errors in the body.
+Project example:
+[NoteRepository and implementation](../lib/core/repository/).
 
 ---
 
-# 12. Security, SSL Pinning, And Encryption
-
-**Memory line:** `TLS protects transit; encryption protects data; authn identifies; authz permits.`
-
-## Questions And Answers
-
-### 1-2. What are SSL and an SSL certificate?
-
-The modern protocol is TLS, though “SSL” is commonly used informally. TLS
-encrypts and authenticates network connections. A server certificate binds a
-public key to an identity through a trusted certificate authority.
-
-### 3-5. What is SSL pinning and how does it prevent MITM?
-
-Pinning makes the app accept only an expected certificate/public key in
-addition to normal trust validation. A malicious certificate trusted by the OS
-is rejected if it does not match the pin.
-
-### 6-9. Types of pinning
-
-| Type | Pins | Tradeoff |
-| --- | --- | --- |
-| Certificate pinning | Whole certificate/its hash | Breaks when certificate changes |
-| Public-key/SPKI pinning | Public key hash | Easier certificate renewal with same key |
-| Hash pinning | Hash of certificate or key | Compact representation, same rotation concern |
-
-### 10-11. Which is preferred in fintech and why?
-
-There is no universal “best.” Many high-security apps prefer public-key/SPKI
-pins with backup pins because certificate renewal is easier, but the correct
-choice depends on threat model, compliance, backend control, and rotation
-strategy. Pinning reduces some MITM risk but does not replace secure server
-authorization.
-
-### 12-13. Risks and rotation
-
-Risks include outages after certificate/key rotation, recovery difficulty,
-proxies in enterprise environments, and bypass on compromised devices. Ship
-primary and backup pins, monitor expiry, overlap rotations, and keep an
-emergency update strategy.
-
-### 14-18. Encryption, AES, symmetric encryption, and keys
-
-Encryption transforms plaintext using a key. AES is a standardized symmetric
-block cipher; the same secret key is used for encryption and decryption. Use an
-authenticated mode such as AES-GCM, not raw AES/ECB.
-
-### 19-20. AES-128 vs AES-256
-
-They use 128-bit and 256-bit keys. Both are strong when implemented correctly;
-AES-256 offers a larger security margin at small possible performance cost.
-
-### 21. AES example
-
-Conceptual example using an authenticated cryptography library:
-
-```dart
-final algorithm = AesGcm.with256bits();
-final secretKey = await algorithm.newSecretKey();
-final nonce = algorithm.newNonce();
-
-final box = await algorithm.encrypt(
-  utf8.encode('sensitive value'),
-  secretKey: secretKey,
-  nonce: nonce,
-);
-```
-
-Store nonce, ciphertext, and authentication tag; never invent cryptographic
-algorithms.
-
-### 22-23. Where should keys be stored?
-
-Do not hardcode keys: application binaries can be inspected. Use platform
-secure hardware-backed storage where possible, backend key management, key
-wrapping, and short-lived server-delivered material based on the threat model.
-
-### 24-26. Authentication vs authorization
-
-| Authentication | Authorization |
-| --- | --- |
-| Who are you? | What may you do? |
-| Login, token validation, biometrics | Roles, scopes, ownership, policy |
-| Happens first | Evaluated after identity is known |
-
-**Status:** Documented production extension. This sample contains no secrets,
-payments, or authentication.
-
----
-
-# 13. SQLite Database
-
-**Memory line:** `Open -> version -> create/migrate -> CRUD -> close when truly finished.`
-
-## Questions And Answers
-
-### 1-3. What is SQLite, why use it, and which package?
-
-SQLite is an embedded relational database stored in a local file. Use it for
-structured, queryable, offline data and relationships. `sqflite` is a common
-Flutter plugin.
-
-### 4-6. Implementation steps, database, and table creation
-
-```text
-1. Add sqflite and path
-2. Resolve database path
-3. openDatabase with version
-4. Create tables in onCreate
-5. Add onUpgrade migrations
-6. Expose parameterized CRUD methods
-```
-
-```dart
-final db = await openDatabase(
-  join(await getDatabasesPath(), 'app.db'),
-  version: 1,
-  onCreate: (db, version) async {
-    await db.execute('''
-      CREATE TABLE notes(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL
-      )
-    ''');
-  },
-);
-```
-
-### 7-11. CRUD operations
-
-```dart
-await db.insert('notes', {'title': 'Learn SQLite'});
-
-final rows = await db.query(
-  'notes',
-  where: 'id = ?',
-  whereArgs: [id],
-);
-
-await db.update(
-  'notes',
-  {'title': 'Updated'},
-  where: 'id = ?',
-  whereArgs: [id],
-);
-
-await db.delete('notes', where: 'id = ?', whereArgs: [id]);
-```
-
-CRUD means Create, Read, Update, Delete.
-
-### 12. Database migration
-
-Increase the version and apply ordered schema changes in `onUpgrade`.
-
-```dart
-onUpgrade: (db, oldVersion, newVersion) async {
-  if (oldVersion < 2) {
-    await db.execute('ALTER TABLE notes ADD COLUMN created_at TEXT');
-  }
-},
-```
-
-Test migration from every supported old version and use transactions for
-multi-step changes.
-
-### 13. How do you close the database?
-
-Call `db.close()` when the application/database service is permanently done.
-For a process-wide singleton mobile database, repeatedly closing it during
-screen disposal is usually incorrect.
-
-### 14-15. SQLite vs SharedPreferences
-
-| SQLite | SharedPreferences |
-| --- | --- |
-| Structured rows, queries, relations | Small primitive key-value settings |
-| Notes, offline records, cache indexes | Theme, onboarding flag, simple preference |
-| Transactions and migrations | No relational querying |
-
-Do not store secrets in plain preferences.
-
-**Implemented:** [`AppDatabase`](../lib/core/database/app_database.dart) and
-repository-driven [SQLite CRUD flow](../lib/core/repository/note_repository_impl.dart).
-Migration is a documented next extension because the current schema is version 1.
-
----
-
-# 14. Futures, Streams, And Async Programming
-
-**Memory line:** `Future = one result; Stream = many results; await = readable suspension.`
-
-## Questions And Answers
-
-### 1-3. Future, Stream, and difference
-
-| Future | Stream |
-| --- | --- |
-| One value or error | Zero or more values/errors |
-| API response, file read | Sensor, socket, database watch |
-| Await once | Listen over time |
-
-### 4-6. async, await, async function
-
-`async` makes a function return a `Future` and permits `await`. `await`
-suspends that async function until completion without blocking the isolate's
-event loop.
-
-```dart
-Future<User> loadUser() async {
-  final response = await api.fetchUser();
-  return User.fromJson(response);
-}
-```
-
-### 7-10. FutureBuilder and StreamBuilder
-
-`FutureBuilder` renders snapshots from one future. `StreamBuilder` renders
-snapshots from multiple stream events. Use them for widget-owned async work;
-use a state manager for shared workflows, caching, and business logic.
-
-### 11. Future example
-
-```dart
-Future<String> loadTitle() async {
-  await Future<void>.delayed(const Duration(milliseconds: 200));
-  return 'Loaded';
-}
-```
-
-### 12. Stream example
-
-```dart
-Stream<int> ticks() async* {
-  for (var value = 1; value <= 3; value++) {
-    await Future<void>.delayed(const Duration(seconds: 1));
-    yield value;
-  }
-}
-```
-
-### 13-15. RxDart and BehaviorSubject
-
-RxDart adds reactive stream operators and subjects to Dart streams.
-`BehaviorSubject` stores/emits the latest value to new listeners. Use it when
-stream composition requires operators such as debounce or combineLatest, not
-as a default replacement for every state tool.
-
-### 16. Keep registration data with RxDart
-
-Own a form-state `BehaviorSubject` in a flow-scoped controller/service, update
-it on field changes, expose a stream, and clear it only after completion or
-explicit cancellation.
-
-### 17-18. Dispose streams and what happens if not
-
-Cancel subscriptions and close owned controllers/subjects. Otherwise callbacks,
-resources, and object references can remain alive, causing memory leaks,
-duplicate events, or “add after close/disposed widget” errors.
-
-**Demonstrated:** [FutureBuilder, StreamBuilder, cached Future, and stream disposal](../lib/interview_examples/view/interview_concepts_page.dart).
-
----
-
-# 15. Callbacks And Listeners
-
-**Memory line:** `VoidCallback sends a signal; ValueChanged<T> sends a value.`
-
-## Questions And Answers
-
-### 1-4. What is VoidCallback and why use it?
-
-`VoidCallback` is `void Function()`. It lets a child notify a parent without
-knowing the parent's implementation.
-
-```dart
-class SaveButton extends StatelessWidget {
-  final VoidCallback onSave;
-
-  const SaveButton({super.key, required this.onSave});
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton(onPressed: onSave, child: const Text('Save'));
-  }
-}
-```
-
-### 5-6. What is ValueChanged<T>?
-
-It is `void Function(T value)`, used when the callback must provide a new value.
-
-```dart
-DropdownButton<String>(
-  value: selected,
-  onChanged: (value) {
-    if (value != null) onCountryChanged(value);
-  },
-  items: items,
-);
-```
-
-### 7-8. ValueNotifier and ValueListenableBuilder
-
-`ValueNotifier<T>` stores one value and notifies listeners when it changes.
-`ValueListenableBuilder` rebuilds only its builder subtree.
-
-### 9. ValueNotifier vs setState
-
-| ValueNotifier | setState |
-| --- | --- |
-| Observable value can be passed/shared | State stays inside one `State` object |
-| Builder can target small subtree | Rebuilds the state's widget subtree |
-| Must dispose when owned | No separate notifier disposal |
-
-### 10-11. How does it update UI and example?
-
-Assigning a different value calls listeners; the builder receives the new value.
-
-```dart
-final count = ValueNotifier<int>(0);
-
-ValueListenableBuilder<int>(
-  valueListenable: count,
-  builder: (_, value, __) => Text('$value'),
-);
-```
-
-### 12-14. Event listener, button clicks, text-field listeners
-
-Flutter receives pointer/keyboard/platform events and invokes registered
-callbacks. A button calls `onPressed`. For text, use `onChanged` or a
-`TextEditingController` listener; remove/dispose owned listeners/controllers.
-
-**Implemented:** [`AppButton` callback](../lib/core/widgets/app_button.dart) and
-[`ValueNotifier` example](../lib/interview_examples/view/interview_concepts_page.dart).
-
----
-
-# 16. App Store And Play Store Country Availability
-
-**Memory line:** `Store restriction controls discovery/download; app restriction controls runtime features.`
-
-## Questions And Answers
-
-### 1-3. How do you restrict countries?
-
-- Google Play Console: configure production or testing track
-  **Countries/regions**.
-- App Store Connect: configure app availability for selected countries or
-  regions.
-
-Store interfaces change, so confirm the latest console steps before release.
-
-### 4. Can users from other countries install?
-
-New store discovery/download is restricted according to store-account region
-rules, not simply current GPS location. Existing installs and travelers may
-still retain/use the app, and internal/testing distribution can follow
-different rules.
-
-### 5. Country-based rollout
-
-Use store country targeting, staged/phased rollout, monitoring, remote config,
-backend allowlists, localization, legal review, and rollback plans.
-
-### 6. Country-based feature restriction inside the app
-
-The backend should return eligibility based on authoritative account/regulatory
-data. Remote Config can control UX, but sensitive authorization must be
-server-enforced.
-
-### 7. Store-level vs app-level restriction
-
-| Store level | App/backend level |
-| --- | --- |
-| Controls listing/download eligibility | Controls behavior after install |
-| Account/store region based | Business/account/regulatory rules |
-| Cannot fully protect an API | Backend authorization can enforce access |
-
-### 8. How do you test?
-
-Use closed/internal tracks, test accounts with target regions, TestFlight,
-backend test fixtures, remote-config conditions, VPN only as a secondary check,
-and verify store rules rather than assuming IP equals country.
-
-**Status:** Documented deployment topic.
-
----
-
-# 17. Payment Gateway Integration
-
-**Memory flow:** `Backend creates order -> app opens SDK -> backend verifies -> app displays status.`
-
-## Questions And Answers
-
-### 1-3. How do you integrate a payment gateway?
-
-```text
-1. App asks backend to create payment/order
-2. Backend uses secret credential and returns public checkout data
-3. App opens gateway SDK/UI
-4. Gateway returns success/failure/cancel signal
-5. App sends payment reference to backend
-6. Backend verifies signature/status with gateway
-7. Backend records final idempotent result
-8. App reads and displays backend-confirmed status
-```
-
-Name only gateways you have genuinely used. Otherwise say which SDK flow you
-understand and that provider-specific APIs differ.
-
-### 4-5. Why backend order creation and no secret key in Flutter?
-
-Mobile binaries are untrusted and inspectable. Secret keys on the client allow
-attackers to create/refund/modify transactions. Backend ownership enforces
-amount, currency, user, inventory, and authorization.
-
-### 6-8. Success, failure, and backend verification
-
-Treat client callbacks as UX signals, not final truth. Show processing, ask the
-backend for verified status, and handle delayed webhooks. Failure should remain
-retryable where safe.
-
-### 9. What is signature verification?
-
-The backend recomputes/verifies a cryptographic signature using the provider
-secret/public key to prove that payment data came from the gateway and was not
-modified.
-
-### 10-11. Cancellation and status UI
-
-Cancellation is not necessarily failure; no charge may have occurred. Model
-states such as `created`, `processing`, `paid`, `failed`, `cancelled`,
-`refunded`, and `unknown`.
-
-### 12. Secure payment flow
-
-TLS, backend secrets, signature verification, webhook validation, amount checks,
-idempotency keys, minimal PCI scope, secure logging, and no trust in client
-amount/status.
-
-### 13. Testing
-
-Use gateway sandbox, test cards/accounts, success/failure/cancel/timeout cases,
-duplicate callbacks, webhook replay, network loss after payment, and backend
-contract/integration tests.
-
-### 14. Common errors
-
-Invalid order, expired session, declined payment, insufficient funds, SDK
-configuration, user cancellation, timeout, signature mismatch, duplicate
-request, and webhook delay.
-
-### 15. Duplicate payment requests
-
-Generate a server-side idempotency key/order ID, enforce uniqueness, disable
-duplicate taps for UX, and return the existing result for repeated requests.
-
-**Status:** Documented production extension. No payment SDK is added.
-
----
-
-# 18. Push Notifications
-
-**Memory flow:** `Permission -> token -> backend -> FCM/APNs -> handler -> route.`
-
-## Questions And Answers
-
-### 1-4. What are push notifications, FCM, and integration steps?
-
-Push notifications are server-originated messages delivered through platform
-services. Firebase Cloud Messaging (FCM) provides cross-platform messaging and
-uses APNs for Apple delivery.
-
-```text
-Configure Firebase/platform files
- -> request permission
- -> obtain token
- -> send token to authenticated backend
- -> handle foreground/background/terminated messages
- -> route from payload safely
-```
-
-### 5-6. Get token and send to backend
-
-Call the messaging SDK for the registration token, listen for token refresh,
-and associate it with the authenticated user/device on the backend. Remove
-stale tokens on logout or delivery feedback.
-
-### 7. Foreground notifications
-
-The app receives a callback. Decide whether to update UI directly or show a
-local notification; system notification banners may not appear automatically
-in the foreground.
-
-### 8. Background notifications
-
-Use the platform-supported background handler. Keep it top-level where
-required, initialize only necessary services, and finish quickly.
-
-### 9. Terminated-state notifications
-
-Read the initial notification/message when the app launches and route after
-startup/navigation is ready.
-
-### 10. Navigate after tap
-
-Parse a validated route/entity ID from payload, authenticate/authorize, then
-navigate through the router. Do not trust arbitrary URLs or actions.
-
-### 11. Permissions
-
-Request at a contextually appropriate time, explain value first, handle denied
-and permanently denied states, and provide settings guidance.
-
-### 12-13. Android and iOS configuration
-
-- Android: Firebase configuration, manifest/service setup, notification
-  channel, Android 13+ permission, icons.
-- iOS: Firebase config, push capability, background modes if required, APNs key
-  or certificate, notification permission.
-
-### 14. What is APNs?
-
-Apple Push Notification service is Apple's delivery service for Apple devices.
-FCM forwards Apple-targeted messages through APNs.
-
-### 15. Notification message vs data message
-
-| Notification payload | Data payload |
-| --- | --- |
-| SDK/OS can display automatically in background | App controls processing |
-| Convenient display | Flexible routing/silent update |
-| Behavior varies by app state/platform | Subject to background restrictions |
-
-**Status:** Documented production extension. No Firebase dependency is added.
-
----
-
-# 19. App Performance
-
-**Memory line:** `Measure first; optimize build, layout, paint, raster, memory, and I/O.`
-
-## Questions And Answers
-
-### 1-3. How do you measure performance and which tools?
-
-Use profile mode on a representative physical device. Flutter DevTools provides
-performance timelines, CPU profiler, memory view, network view, inspector, and
-app-size tooling. Also use platform profilers and production monitoring.
-
-### 4. What is frame rendering time?
-
-It is the time to produce a frame. At 60 Hz the budget is about 16.7 ms; at
-120 Hz it is about 8.3 ms. Missing the budget causes visible jank.
-
-### 5. What causes jank?
-
-Expensive synchronous work on the UI isolate, large rebuild/layout/paint areas,
-shader/image work, excessive allocations/GC, complex clipping/opacity, and
-blocking platform operations.
-
-### 6. Reduce unnecessary rebuilds
-
-Keep state close to consumers, split widgets, use `const`, selectors/buildWhen,
-`ValueListenableBuilder`, `Consumer`, or `Obx` narrowly, and avoid watching
-state above a large tree.
-
-### 7-8. Optimize large lists and why ListView.builder?
-
-Use lazy builders, stable keys, pagination, fixed/prototype extent where valid,
-cached thumbnails, and avoid expensive work per item. `ListView.builder`
-creates visible items on demand instead of all children at once.
-
-### 9. How does const help?
-
-A const widget is canonical/immutable and can be reused when configuration is
-unchanged. It reduces object recreation and helps Flutter skip some update
-work, but it does not magically stop every ancestor rebuild.
-
-### 10. Optimize images
-
-Request/display correct dimensions, compress assets, use modern formats where
-supported, set cache dimensions, paginate galleries, preload selectively, and
-avoid decoding huge images for tiny views.
-
-### 11. Reduce startup time
-
-Delay noncritical initialization, minimize synchronous work before `runApp`,
-lazy-load services/features, reduce plugin/dependency overhead, optimize first
-screen assets, and measure cold/warm startup separately.
-
-### 12. Identify memory leaks
-
-Use DevTools memory snapshots and allocation tracking. Check undisposed
-controllers/subscriptions/timers, retained contexts, image caches, and growing
-collections.
-
-### 13. Improve API performance
-
-Parallelize independent calls, paginate, cache with expiry, compress payloads,
-avoid duplicate requests, debounce search, cancel stale calls, use ETags where
-supported, and measure backend/network latency.
-
-### 14. Cache data
-
-Choose memory cache for speed, local database/files for persistence, and define
-expiry/invalidation/source-of-truth rules. Cache is a consistency decision, not
-only a storage decision.
-
-### 15. Improve complex-screen build performance
-
-Profile the exact frame, split state ownership, use lazy layout, avoid intrinsic
-measurement in hot paths, isolate repaint regions when useful, reduce nested
-scroll complexity, and move CPU-heavy work to an isolate.
-
-**Demonstrated:** targeted builders and responsive layout in the
-[concepts screen](../lib/interview_examples/view/interview_concepts_page.dart),
-plus parallel data loading with
-[`Future.wait`](../lib/core/repository/note_repository_impl.dart).
-
----
-
-# 20. Main Function And App Startup
-
-**Memory line:** `main initializes; runApp mounts the root widget.`
-
-## Questions And Answers
-
-### 1. What is main?
-
-`main()` is the Dart entry function for the application isolate.
-
-### 2. What is runApp?
-
-`runApp(rootWidget)` attaches the root widget to Flutter's rendering pipeline
-and schedules the UI.
-
-### 3. main vs runApp
-
-`main` is a Dart function and can perform setup. `runApp` is the Flutter call
-that starts the widget tree.
-
-### 4. Can main be async?
-
-Yes.
+## A49. What is `WidgetsFlutterBinding.ensureInitialized()`?
+
+**Interview answer:**  
+It ensures Flutter framework bindings exist before code uses plugins or
+framework services prior to `runApp`.
 
 ```dart
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeServices();
+  await initializeDatabaseOrFirebase();
   runApp(const App());
 }
 ```
 
-Keep pre-UI work minimal to protect startup time.
+You do not need to call it just because `main` is async; call it when pre-UI
+initialization requires the binding.
 
-### 5. Why WidgetsFlutterBinding.ensureInitialized?
+---
 
-It initializes the Flutter binding before using plugin/channel/framework
-services prior to `runApp`.
+## A50. `didChangeDependencies()` vs `didUpdateWidget()`
 
-### 6. What happens before runApp?
-
-The Dart isolate starts, imports/static initialization occur, `main` executes,
-and any awaited startup setup completes.
-
-### 7. What is the first widget?
-
-The widget passed to `runApp`, such as `ProviderScope`, `MaterialApp`, or a
-custom root.
-
-### 8. Initialize Firebase before startup
+| didChangeDependencies | didUpdateWidget |
+| --- | --- |
+| Inherited dependency changed | Parent passed new widget configuration |
+| Theme, locale, inherited/provider dependency | Constructor property changed |
+| Safe place for context-dependent setup | Compare `oldWidget` and `widget` |
 
 ```dart
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const App());
+@override
+void didUpdateWidget(covariant UserPage oldWidget) {
+  super.didUpdateWidget(oldWidget);
+  if (oldWidget.userId != widget.userId) {
+    loadUser(widget.userId);
+  }
 }
 ```
 
-**Implemented:** [`main`](../lib/main.dart) starts with `ProviderScope` and
-`MainMenuApp`.
+**Remember:** `dependency from context -> didChangeDependencies`; `new property
+from parent -> didUpdateWidget`.
 
 ---
 
-# 21. MCP Server, AI Agent, And Agentic AI
+# Part B: Top 100 Additional Flutter Interview Questions
 
-**Memory line:** `MCP standardizes tool/data connection; an agent decides and acts through tools.`
+These questions avoid repeating Part A. Answers are intentionally compact for
+rapid revision.
 
-## Questions And Answers
+## Dart Language: B1-B20
 
-### 1-2. What is an MCP server and what problem does it solve?
+### B1. What is Dart?
 
-The Model Context Protocol (MCP) is an open protocol for connecting AI
-applications to external tools and context. An MCP server exposes capabilities
-such as tools, resources, and prompts through a standard interface, reducing
-custom one-off integrations.
+**Answer:** Dart is a type-safe, object-oriented language optimized for client
+applications. It supports JIT development, ahead-of-time compilation, async
+programming, sound null safety, generics, patterns, and isolates.
 
-### 3. MCP usage example
+### B2. What is the difference between `var`, `dynamic`, and `Object?`?
 
-An IDE assistant connects to a GitHub MCP server to read issues and create a
-pull request, or to a database MCP server to inspect schema through controlled
-tools.
+**Answer:** `var` infers a static type. `dynamic` disables most static checking
+for that value. `Object?` accepts any value but requires type checks before
+specific operations.
 
-### 4. How can MCP help app development?
-
-It can give development agents standardized access to design files, repository
-issues, documentation, test systems, logs, or internal APIs with explicit
-permissions.
-
-### 5. What is an AI agent?
-
-An AI agent is a system that receives a goal, reasons/plans within constraints,
-uses tools, observes results, and continues until it produces an outcome or
-needs human input.
-
-### 6-7. What is Agentic AI and how is it different?
-
-“Agentic AI” describes systems/behavior with autonomy, planning, tool use,
-memory, and multi-step execution. An “AI agent” is a concrete component or
-application exhibiting some of those properties. The terms overlap and are not
-strictly standardized.
-
-### 8. AI agent example
-
-A support agent reads an order through an approved tool, checks refund policy,
-asks for confirmation, submits a refund, and records the result.
-
-### 9. Integrating an agent with Flutter
-
-```text
-Flutter UI
- -> authenticated backend
- -> agent runtime/model
- -> approved server-side tools
- -> streamed status/result
- -> Flutter renders progress and asks confirmation for risky actions
+```dart
+var name = 'Sumit'; // String
+dynamic raw = apiValue;
+Object? value = raw;
 ```
 
-Keep privileged tools and model credentials on the backend, not in the app.
+### B3. What is type inference?
 
-### 10. Chatbot vs agent
+**Answer:** The compiler determines a variable or generic type from its value
+and context while retaining static checking.
 
-| Chatbot | Agent |
-| --- | --- |
-| Primarily responds with text | Can plan and execute actions |
-| Often one request/response | Multi-step tool loop |
-| Limited external effects | May change external systems |
+### B4. What are named and positional parameters?
 
-### 11. How does an agent call tools?
+**Answer:** Positional parameters depend on order. Named parameters improve
+clarity and can be marked `required`.
 
-The model selects a tool with structured arguments, the host validates policy
-and executes it, the result returns to the model, and the loop continues. MCP
-is one standard way to expose tools/context; provider-specific function calling
-is another.
-
-### 12. Safety concerns
-
-Prompt injection, excessive permissions, secret leakage, unsafe tool arguments,
-untrusted tool output, hallucinated actions, privacy, cost loops, and missing
-human approval. Use least privilege, allowlists, schema validation, sandboxing,
-audit logs, rate limits, confirmations, and output sanitization.
-
-**Status:** Documented. This Flutter sample does not connect to an AI backend.
-
----
-
-# 22. Practical Scenario-Based Answers
-
-Use **S-A-R** for experience questions:
-
-```text
-Situation -> Action -> Result
+```dart
+void save(String id, {required String title}) {}
 ```
 
-Do not claim technologies you have not used. Replace “I implemented” with “I
-would implement” when describing a design rather than real experience.
+### B5. What are optional parameters and default values?
 
-## 1. How did you implement API integration?
+**Answer:** Optional positional parameters use `[]`; optional named parameters
+use `{}`. Non-nullable optional parameters need a default or must be required.
 
-“I kept HTTP behind a remote data-source interface. The repository mapped
-transport data into application models, and the state manager exposed loading,
-data, and failure. This prevented widgets from depending on the client.”
+### B6. What is a closure?
 
-Project reference:
-[`NoteRemoteDataSource`](../lib/core/data/note_data_sources.dart).
+**Answer:** A closure is a function that captures variables from its surrounding
+scope even after that scope returns.
 
-## 2. How did you update UI after an API response?
+### B7. What is a typedef?
 
-“The state manager awaited the repository, then emitted/assigned a new immutable
-state. BLoC rebuilt through `BlocBuilder`, GetX notified `Obx`, and Riverpod
-updated `AsyncValue` watched by the consumer.”
+**Answer:** A typedef gives a readable name to a function or type signature.
 
-## 3. How did you manage token expiry?
+```dart
+typedef UserLoader = Future<User> Function(String id);
+```
 
-“A Dio interceptor detected 401, entered one synchronized refresh operation,
-queued/retried eligible requests once, and logged out if refresh failed.”
+### B8. What are generics?
 
-## 4. How did you handle session timeout?
+**Answer:** Generics make classes/functions reusable while preserving type
+safety, such as `List<User>` or `Result<T>`.
 
-“I treated server expiry as authoritative, cleared secure credentials and
-protected state, cancelled sensitive work, and routed to login with a clear
-message.”
+### B9. What is an extension method?
 
-## 5. How did you store login data securely?
+**Answer:** An extension adds statically resolved methods/getters to an existing
+type without modifying or inheriting from it.
 
-“I stored short-lived tokens in platform secure storage, kept non-sensitive
-profile/cache data separately, avoided secrets in source/preferences/logs, and
-relied on backend authorization.”
+### B10. What is an enum in modern Dart?
 
-## 6. How did you keep registration form data when navigating back?
+**Answer:** An enum represents a fixed set of values and may contain fields,
+methods, and implemented interfaces.
 
-“I moved draft form state into a flow-scoped notifier/provider above the pages,
-restored controllers from that state, and cleared it after completion or
-explicit cancellation.”
+### B11. What are records?
 
-## 7. How did you handle internet errors?
+**Answer:** Records are immutable typed groups of values without declaring a
+class.
 
-“I mapped socket/timeout failures to a network failure, preserved cached data
-where possible, showed an offline/retry state, and retried only safe operations.”
+```dart
+(String, int) userSummary() => ('Sumit', 5);
+```
 
-## 8. How did you handle server errors?
+### B12. What are patterns?
 
-“I separated validation, authorization, rate-limit, and 5xx failures; logged
-technical context with a correlation ID and showed user-safe actionable text.”
+**Answer:** Patterns destructure and match values in declarations, switches,
+and conditions.
 
-## 9. How did you implement payments?
+```dart
+final (name, count) = userSummary();
+```
 
-“The backend created the order and owned secret keys. The app opened the
-provider SDK, then displayed only the status verified by backend signature/API
-or webhook processing.”
+### B13. What is the cascade operator?
 
-## 10. How did you implement push notifications?
+**Answer:** `..` performs multiple operations on the same object and returns
+that object.
 
-“I requested permission contextually, registered/refreshed the FCM token with
-the backend, handled foreground/background/terminated states, and validated the
-payload before deep-link navigation.”
+```dart
+final controller = TextEditingController()
+  ..text = 'Initial'
+  ..selection = const TextSelection.collapsed(offset: 7);
+```
 
-## 11. How did you improve performance?
+### B14. What are spread and collection-if/for?
 
-“I measured in profile mode, identified the expensive frame in DevTools, then
-reduced rebuild scope/lazy-loaded lists/optimized images or moved CPU work off
-the UI isolate. I compared metrics before and after.”
+**Answer:** `...` inserts collection items; collection `if` and `for` build
+collections declaratively.
 
-## 12-13. How did you manage app lifecycle/background/foreground?
+### B15. How does equality work in Dart?
 
-“I used `WidgetsBindingObserver` for lifecycle transitions, paused/resumed
-appropriate resources, refreshed stale data on resume, and never assumed
-background execution is unlimited.”
+**Answer:** `identical` checks object identity. `==` can be overridden for value
+equality; when overriding it, also provide a consistent `hashCode`.
 
-Project reference:
-[lifecycle demonstration](../lib/interview_examples/view/interview_concepts_page.dart).
+### B16. How do exceptions work?
 
-## 14-15. How did you secure API communication and use SSL pinning?
+**Answer:** Use `try`, `on`, `catch`, and `finally`. Catch specific errors where
+you can recover or add context; do not silently swallow failures.
 
-“I used TLS, secure token storage, backend authorization, safe logs, timeout and
-certificate validation. Where the threat model justified pinning, I used
-maintained certificate/public-key pinning with backup pins and a rotation plan.”
+### B17. What is `Future.wait`?
 
-## 16. How did you manage local database CRUD?
+**Answer:** It waits for multiple independent futures concurrently and returns
+their results in order.
 
-“Widgets called the state manager, which called a repository. The repository
-used parameterized SQLite methods and returned typed models. SQL never lived in
-the UI.”
+Project example:
+[repository loading](../lib/core/repository/note_repository_impl.dart).
 
-Project reference:
-[`AppDatabase`](../lib/core/database/app_database.dart).
+### B18. What is the Dart event loop?
 
-## 17. How did you structure the project?
+**Answer:** It processes synchronous work, microtasks, and event-queue tasks on
+an isolate. Long synchronous work blocks frames even when called from an async
+function.
 
-“I separated shared model/data/repository/widgets from package-specific
-presentation. All state managers depend on one repository contract, making the
-comparison fair and tests deterministic.”
+### B19. Microtask queue vs event queue?
 
-## 18. How did you use Clean Architecture?
+**Answer:** Microtasks run before the next event. Overusing microtasks can starve
+timers, I/O events, and frame work.
 
-For this repository, answer accurately:
+### B20. What is a Stream subscription?
 
-“This sample is layered and MVVM-inspired with dependency inversion; it is not
-full Clean Architecture because it intentionally omits use-case classes and
-separate domain/DTO models. In a larger app I would add those only when business
-complexity justifies them.”
-
-## 19. How did you test API and state-management logic?
-
-“I replaced the repository with an in-memory fake, triggered events/methods, and
-verified loading/data/error. Widget tests verify UI interaction, while an
-integration test verifies the BLoC-to-SQLite flow on a device.”
-
-Project reference: [testing guide](../test/README.md).
-
-## 20. How did you handle dev, staging, and production?
-
-“I used build flavors/schemes and typed environment configuration for API URL,
-logging, app IDs, and service files. Secrets remained in CI/backend secret
-management, not Dart constants. CI built and tested each relevant environment.”
+**Answer:** `listen` returns a subscription that can pause, resume, or cancel
+delivery. Cancel owned subscriptions in cleanup.
 
 ---
 
-# Rapid Revision Tables
+## Flutter Fundamentals: B21-B45
 
-## State Management
+### B21. What is `BuildContext`?
 
-| Question | BLoC | GetX | Riverpod |
-| --- | --- | --- | --- |
-| Input | Event | Controller method | Notifier method |
-| State | Immutable state object | Rx values | State / AsyncValue |
-| UI subscription | BlocBuilder | Obx | ref.watch |
-| Side effects | BlocListener | Worker/controller/UI callback | ref.listen |
-| DI | Constructor/RepositoryProvider | Get.put/Get.find | Provider graph |
-| Test strategy | Add event, expect states | Call method, inspect Rx | Override provider in container |
+**Answer:** It is an element's location in the widget tree and is used to find
+ancestors such as Theme, Navigator, MediaQuery, and inherited dependencies.
 
-## Async
+### B22. Why should `BuildContext` not be stored globally?
 
-| Concept | Remember |
-| --- | --- |
-| Future | One result |
-| Stream | Many results |
-| async | Function returns Future |
-| await | Suspend function, not isolate |
-| FutureBuilder | Future snapshot to UI |
-| StreamBuilder | Stream snapshots to UI |
+**Answer:** Context belongs to a mounted tree location and can become invalid or
+retain UI objects. Pass it briefly or use scoped navigation/dependency APIs.
 
-## Architecture
+### B23. What are keys?
 
-| Concept | Responsibility |
-| --- | --- |
-| View | Render and collect user input |
-| State manager | UI state and workflow coordination |
-| Use case | One business action |
-| Repository | Data-access abstraction |
-| Data source | HTTP, database, platform implementation |
-| DTO | Transport/storage shape |
-| Entity | Business meaning and rules |
+**Answer:** Keys help Flutter match widgets with elements when siblings move or
+change. Common types are `ValueKey`, `ObjectKey`, `UniqueKey`, and `GlobalKey`.
 
-## Security
+### B24. When should `GlobalKey` be used?
 
-| Concept | Remember |
-| --- | --- |
-| Authentication | Who are you? |
-| Authorization | What may you do? |
-| TLS | Protect data in transit |
-| Encryption | Protect data with a key |
-| Hashing | One-way digest |
-| Pinning | Restrict accepted server certificate/key |
+**Answer:** Use it sparingly when access to a specific state/context/form across
+the tree is necessary. It is heavier and can create tight coupling.
+
+### B25. What is the Flutter constraint rule?
+
+**Answer:** `Constraints go down, sizes go up, parents set positions`.
+
+### B26. `Expanded` vs `Flexible`
+
+**Answer:** Both work inside Flex layouts. `Expanded` forces the child to fill
+its allocated space; `Flexible` allows it to use less space.
+
+### B27. `MediaQuery` vs `LayoutBuilder`
+
+**Answer:** `MediaQuery` describes the screen/window and accessibility settings.
+`LayoutBuilder` provides the constraints of the immediate parent.
+
+### B28. What is `Builder`?
+
+**Answer:** It creates a new `BuildContext` below its position, useful when a
+callback needs to see an ancestor added in the same build method.
+
+### B29. What is `FutureBuilder`?
+
+**Answer:** It builds UI from a future snapshot. Create/cache the future outside
+`build` when it must not restart on rebuild.
+
+### B30. What is `StreamBuilder`?
+
+**Answer:** It rebuilds from stream snapshots and is suitable for widget-owned
+continuous data.
+
+Project examples:
+[concepts screen](../lib/interview_examples/view/interview_concepts_page.dart).
+
+### B31. Hot reload vs hot restart
+
+**Answer:** Hot reload injects code and preserves most state. Hot restart
+restarts the Dart isolate and loses runtime state without reinstalling the app.
+
+### B32. What is `RepaintBoundary`?
+
+**Answer:** It can isolate painting into a separate layer so one subtree does
+not repaint with another. Use it after profiling; unnecessary boundaries also
+have cost.
+
+### B33. What is the gesture arena?
+
+**Answer:** Multiple gesture recognizers compete for a pointer sequence. Flutter
+resolves which recognizer wins, such as horizontal drag versus tap.
+
+### B34. What are slivers?
+
+**Answer:** Slivers are scrollable layout building blocks consumed by a
+viewport, including `SliverList`, `SliverGrid`, and `SliverAppBar`.
+
+### B35. What is a Hero animation?
+
+**Answer:** It animates a shared tagged widget between routes. Hero tags must be
+unique within a route subtree.
+
+### B36. Implicit vs explicit animation
+
+**Answer:** Implicit widgets animate property changes automatically. Explicit
+animations use `AnimationController` for lifecycle and timing control.
+
+### B37. Why dispose an `AnimationController`?
+
+**Answer:** It owns a ticker/resource. Not disposing can leak work and trigger
+ticker warnings.
+
+### B38. What is a Form and `GlobalKey<FormState>`?
+
+**Answer:** `Form` groups field validation/saving. Its key can call
+`validate`, `save`, and `reset` on that specific form state.
+
+### B39. `TextField` vs `TextFormField`
+
+**Answer:** `TextField` is basic editable input. `TextFormField` integrates with
+`Form` validation and saving.
+
+### B40. What are FocusNode and FocusScope?
+
+**Answer:** They control keyboard focus, traversal, and focus events. Dispose
+owned focus nodes.
+
+### B41. What is localization?
+
+**Answer:** Localization provides translated strings and locale-specific
+formats. Flutter uses generated localizations/delegates and locale resolution.
+
+### B42. What is theming?
+
+**Answer:** `ThemeData` centralizes colors, typography, and component styles so
+UI remains consistent and supports light/dark modes.
+
+### B43. What are semantics and accessibility?
+
+**Answer:** Semantics describe meaning/actions to assistive technologies. Test
+screen readers, contrast, scaling, focus order, labels, and touch targets.
+
+### B44. What is a platform view?
+
+**Answer:** It embeds a native Android/iOS view in Flutter, such as a native map.
+It can have composition, gesture, and performance tradeoffs.
+
+### B45. What causes Flutter jank?
+
+**Answer:** Frames exceed their time budget due to heavy UI-isolate work,
+expensive layout/paint/rasterization, large images, excess allocation, or
+blocking platform calls. Measure in profile mode with DevTools.
 
 ---
 
-# Official References
+## State Management: B46-B65
 
-- [Flutter platform channels](https://docs.flutter.dev/platform-integration/platform-channels)
-- [Flutter architectural overview](https://docs.flutter.dev/resources/architectural-overview)
-- [Flutter application architecture](https://docs.flutter.dev/app-architecture/guide)
-- [Flutter testing overview](https://docs.flutter.dev/testing/overview)
-- [Flutter performance best practices](https://docs.flutter.dev/perf/best-practices)
-- [Riverpod refs: watch, read, listen](https://riverpod.dev/docs/concepts2/refs)
-- [Flutter BLoC concepts](https://bloclibrary.dev/flutter-bloc-concepts/)
-- [Dio package documentation](https://pub.dev/packages/dio)
-- [Freezed package documentation](https://pub.dev/packages/freezed)
-- [sqflite package documentation](https://pub.dev/packages/sqflite)
-- [Firebase Cloud Messaging for Flutter](https://firebase.google.com/docs/cloud-messaging/flutter/receive-messages)
-- [Google Play country targeting](https://support.google.com/googleplay/android-developer/answer/7550024)
-- [Model Context Protocol introduction](https://modelcontextprotocol.io/docs/getting-started/intro)
+### B46. Why use state management?
+
+**Answer:** It gives state a clear owner and separates UI rendering from async
+work, persistence, validation, and business rules.
+
+### B47. Local state vs application state
+
+**Answer:** Local state belongs to a small widget subtree. Application state is
+shared, persistent, asynchronous, or business-critical.
+
+### B48. What is BLoC?
+
+**Answer:** BLoC receives events and emits states through a predictable
+event-to-state flow.
+
+### B49. What is Cubit?
+
+**Answer:** Cubit exposes methods that directly emit states without event
+classes, reducing boilerplate for simpler workflows.
+
+### B50. BLoC vs Cubit
+
+**Answer:** Use BLoC when explicit events, auditability, event transformations,
+or complex sources matter. Use Cubit for straightforward method-to-state logic.
+
+### B51. `BlocBuilder`, `BlocListener`, and `BlocConsumer`
+
+**Answer:** Builder renders state, Listener performs one-time side effects, and
+Consumer combines both.
+
+Project example:
+[BLoC views](../lib/bloc_example/view/).
+
+### B52. What is GetX state management?
+
+**Answer:** A GetX controller owns reactive `Rx` values, and `Obx` rebuilds when
+the values read inside it change.
+
+### B53. What are `Get.put` and `Get.find`?
+
+**Answer:** `Get.put` registers a dependency and `Get.find` retrieves it. Scope
+and delete controllers deliberately to avoid hidden long-lived globals.
+
+### B54. What is Riverpod?
+
+**Answer:** Riverpod is provider-based state and dependency management using a
+provider graph and `Ref` rather than `BuildContext`.
+
+### B55. What is `ProviderScope`?
+
+**Answer:** It stores Riverpod provider state for a Flutter subtree and enables
+provider overrides.
+
+### B56. `ref.watch`, `ref.read`, and `ref.listen`
+
+**Answer:** `watch` subscribes/rebuilds, `read` gets a value once, and `listen`
+runs side effects when a provider changes.
+
+### B57. What is `StateProvider`?
+
+**Answer:** It manages a simple mutable value such as a filter or selected
+index. Prefer a notifier when logic grows.
+
+### B58. What is `FutureProvider`?
+
+**Answer:** It exposes read-only future data as `AsyncValue`.
+
+### B59. What is `StreamProvider`?
+
+**Answer:** It exposes stream values as `AsyncValue`.
+
+### B60. What is `NotifierProvider`?
+
+**Answer:** It exposes synchronous state plus methods owned by a Riverpod
+`Notifier`.
+
+### B61. What is `AsyncNotifierProvider`?
+
+**Answer:** It exposes asynchronous loading/data/error state plus mutation
+methods through `AsyncNotifier`.
+
+Project example:
+[RiverpodNoteViewModel](../lib/riverpod_example/viewmodel/riverpod_note_view_model.dart).
+
+### B62. What is `AsyncValue`?
+
+**Answer:** It represents loading, data, and error without separate nullable
+flags.
+
+### B63. What does `autoDispose` do?
+
+**Answer:** It disposes provider state when no longer listened to, unless kept
+alive. Use it for screen-scoped state; avoid it for drafts that must survive.
+
+### B64. How are Riverpod providers tested?
+
+**Answer:** Create `ProviderContainer`, override dependencies with fakes, invoke
+the notifier, and inspect provider state.
+
+Project test:
+[riverpod_note_view_model_test.dart](../test/riverpod/riverpod_note_view_model_test.dart).
+
+### B65. How do you choose BLoC, GetX, or Riverpod?
+
+**Answer:** Choose based on team conventions, workflow complexity, dependency
+management, testing, existing architecture, and maintenance cost, not trends.
+
+See the [state-management comparison](../README.md#2-what-is-the-difference-between-bloc-getx-and-riverpod).
+
+---
+
+## Architecture And Data: B66-B80
+
+### B66. What is Clean Architecture?
+
+**Answer:** It separates presentation, domain, and data so business rules do not
+depend on UI, HTTP, or database frameworks.
+
+### B67. What is an entity?
+
+**Answer:** An entity represents business identity and rules independent of
+transport/storage format.
+
+### B68. What is a DTO?
+
+**Answer:** A Data Transfer Object matches an API or storage shape and is mapped
+to/from domain objects.
+
+### B69. What is a repository?
+
+**Answer:** A repository is a domain-facing abstraction that hides data-source
+details.
+
+### B70. What is a use case?
+
+**Answer:** A use case represents one business action and coordinates rules and
+repositories.
+
+### B71. Repository vs use case
+
+**Answer:** A repository answers “how can data be accessed?” A use case answers
+“what business action should happen?”
+
+### B72. What is dependency injection?
+
+**Answer:** Dependencies are supplied from outside instead of constructed
+internally, improving replacement, configuration, and testing.
+
+### B73. What is dependency inversion?
+
+**Answer:** High-level code depends on abstractions, while concrete data
+implementations satisfy those abstractions.
+
+Project example:
+[repository contract](../lib/core/repository/note_repository.dart).
+
+### B74. What is immutable state?
+
+**Answer:** Existing state is not mutated; a new state object represents each
+change. This improves predictability, equality, and debugging.
+
+### B75. What is `copyWith`?
+
+**Answer:** It creates a new immutable object while replacing selected fields.
+
+Project example:
+[NoteModel](../lib/core/models/note_model.dart).
+
+### B76. What is Freezed?
+
+**Answer:** Freezed generates immutable classes, value equality, `copyWith`,
+sealed unions, and optional JSON integration.
+
+### B77. What is JSON serialization?
+
+**Answer:** It converts between Dart objects and JSON-compatible maps. Generated
+serialization reduces repetitive and unsafe manual casts.
+
+### B78. SQLite vs SharedPreferences
+
+**Answer:** SQLite handles structured/queryable records and transactions.
+SharedPreferences handles small non-sensitive primitive settings.
+
+### B79. What is a database migration?
+
+**Answer:** It upgrades an existing schema/data from an old version to a new
+version without losing user data. Test every supported upgrade path.
+
+### B80. What is a database transaction?
+
+**Answer:** It groups operations atomically: all succeed or all roll back. Use
+it for multi-step consistency.
+
+---
+
+## Networking And Security: B81-B90
+
+### B81. What do common HTTP status groups mean?
+
+**Answer:** `2xx` success, `4xx` client/auth/request problems, and `5xx`
+server/upstream failures.
+
+### B82. `200` vs `201` vs `202`
+
+**Answer:** `200` completed successfully, `201` created a resource, `202`
+accepted for later processing.
+
+### B83. `401` vs `403`
+
+**Answer:** `401` means valid authentication is missing. `403` means identity is
+known but permission is denied.
+
+### B84. What is pagination?
+
+**Answer:** Pagination loads data in pages/cursors instead of all records,
+reducing response time, memory, and UI work.
+
+### B85. What are debounce and throttle?
+
+**Answer:** Debounce waits for quiet time before running, useful for search.
+Throttle limits execution frequency, useful for scrolling or repeated events.
+
+### B86. How do you cancel stale API requests?
+
+**Answer:** Use the client's cancellation mechanism, cancel previous searches,
+or ignore results whose request/version no longer matches current state.
+
+### B87. What is secure storage?
+
+**Answer:** It stores small secrets using platform-protected facilities such as
+Keychain or Keystore-backed encryption. It does not make an untrusted device
+fully secure.
+
+### B88. Authentication vs authorization
+
+**Answer:** Authentication asks “who are you?” Authorization asks “what may you
+do?”
+
+### B89. Symmetric vs asymmetric encryption
+
+**Answer:** Symmetric encryption uses one shared secret and is fast. Asymmetric
+cryptography uses public/private keys and supports key exchange/signatures.
+
+### B90. Hashing vs encryption
+
+**Answer:** Encryption is reversible with a key. Hashing is one-way and used for
+integrity or password-verification schemes.
+
+---
+
+## Testing, Delivery, And Production: B91-B100
+
+### B91. Unit vs widget vs integration test
+
+**Answer:** Unit tests isolate logic, widget tests render/interact with Flutter
+UI in the test runtime, and integration tests verify complete flows on a target.
+
+See the [testing guide](../test/README.md).
+
+### B92. Mock vs fake
+
+**Answer:** A mock verifies configured interactions. A fake is a lightweight
+working implementation with controllable behavior.
+
+Project fake:
+[FakeNoteRepository](../test/helpers/fake_note_repository.dart).
+
+### B93. What is a golden test?
+
+**Answer:** It compares rendered pixels with an approved reference image to
+detect visual regressions. Control fonts, sizes, platform differences, and
+intentional updates.
+
+### B94. What is CI/CD?
+
+**Answer:** Continuous Integration automatically validates changes. Continuous
+Delivery/Deployment prepares or releases validated builds through repeatable
+pipelines.
+
+Project example:
+[Flutter CI](../.github/workflows/flutter_ci.yml).
+
+### B95. How do you reduce app size?
+
+**Answer:** Analyze size, remove unused dependencies/assets, enable appropriate
+shrinking, use app bundles/split debug symbols, compress resources, and avoid
+shipping unnecessary architectures/features.
+
+### B96. How do you find memory leaks?
+
+**Answer:** Use DevTools memory snapshots/allocation tracking and check retained
+controllers, subscriptions, timers, contexts, caches, and growing collections.
+
+### B97. Foreground, background, and terminated notification handling
+
+**Answer:** Foreground messages update UI/show local notifications; background
+handlers do limited work; terminated taps are read during startup before safe
+deep-link navigation.
+
+### B98. What is a deep link?
+
+**Answer:** A deep link opens a specific app location from a URI. Validate route
+arguments and authorization before displaying protected content.
+
+### B99. How should payment integration be secured?
+
+**Answer:** The backend creates orders and owns secrets. The app opens the
+gateway UI, while the backend verifies signatures/webhooks and returns the
+authoritative idempotent payment status.
+
+### B100. How do you answer “describe a production issue”?
+
+**Answer:** Use STAR:
+
+```text
+Situation -> Task -> Action -> Result
+```
+
+Explain symptoms, evidence, root cause, fix, verification, measurable result,
+and prevention. Do not invent production experience; describe a design as “I
+would” when it was not personally implemented.
+
+---
+
+# Five-Minute Revision
+
+```text
+main starts Dart; runApp starts UI.
+Widget configures; Element manages; RenderObject lays out and paints.
+setState rebuilds one subtree, not the whole app.
+Future gives one result; Stream gives many.
+MethodChannel asks once; EventChannel listens.
+JIT helps development; AOT optimizes release.
+Thread shares memory; isolate sends messages.
+Authentication = who; authorization = permission.
+BLoC: Event -> State.
+GetX: Controller -> Rx -> Obx.
+Riverpod: Provider -> AsyncNotifier -> AsyncValue.
+Repository hides data source; use case represents business action.
+Unit tests logic; widget tests UI; integration tests complete flow.
+```
 
 Return to the [root project guide](../README.md).
