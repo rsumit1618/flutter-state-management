@@ -795,15 +795,24 @@ Keep the callback synchronous and change only the relevant local state.
 ## A40. What is Flutter architecture?
 
 **Interview answer:**  
-Flutter has a Dart framework, a C++ engine, and platform embedders.
+Flutter architecture has 3 main layers: **Framework**, **Engine**, and **Embedder**.
+
+1. **Framework layer**  
+   Written in **Dart**.  
+   It gives us widgets, UI, gestures, animations, and rendering logic.
+
+2. **Engine layer**  
+   Written mostly in **C++**.  
+   It runs Dart code and handles text, graphics, painting, and rendering.
+
+3. **Embedder layer**  
+   Connects Flutter to the native platform like Android, iOS, Web, or Desktop.  
+   It handles window, input, app lifecycle, and platform-specific features.
+
+**Flow:**
 
 ```text
-App
--> Framework: widgets, gestures, animation, rendering abstractions
--> Engine: Dart runtime, text, compositing, graphics/rasterization
--> Embedder: window, input, lifecycle, native platform integration
--> OS/GPU
-```
+App -> Framework -> Engine -> Embedder -> OS/GPU
 
 Do not say Flutter always renders only with Skia. Modern Flutter uses Impeller
 by default on major mobile targets, while Skia remains relevant on other
